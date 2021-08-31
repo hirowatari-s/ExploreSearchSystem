@@ -17,4 +17,4 @@ COPY --from=builder /app/requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
 
-ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:8000", "app:server"]
+ENTRYPOINT ["gunicorn", "--access-logfile - --error-logfile", "--bind", "0.0.0.0:8000", "app:server"]
