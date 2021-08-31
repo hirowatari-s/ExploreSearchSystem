@@ -1,17 +1,20 @@
+FROM python:3.8.11-slim-buster as builder
+
+WORKDIR /app
+
+RUN pip install poetry
+COPY pyproject.toml poetry.lock ./
+RUN poetry export -f requirements.txt > requirements.txt
+
+
 FROM python:3.8.11-slim-buster
 
-# Keeps Python from generating .pyc files in the container
 ENV PYTHONDONTWRITEBYTECODE=1
-
-# Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
+WORKDIR /app
 
-# Install pip requirements
-# COPY requirements.txt .
-# RUN python -m pip install -r requirements.txt
+COPY --from=builder /app/requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
 
-# WORKDIR /app
-# COPY . /app
-
-# ENTRYPOINT ["gunicorn", "app:server"]
-ENTRYPOINT ["echo", "Hello"]
+ENTRYPOINT ["gunicorn", "--bind", "0.0.0.0:8000", "app:server"]
