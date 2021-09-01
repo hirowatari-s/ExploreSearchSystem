@@ -11,10 +11,14 @@ FROM python:3.8.11-slim-buster
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-WORKDIR /app
 
 COPY --from=builder /app/requirements.txt .
 RUN pip install -r requirements.txt
+
+ARG PORT=8000
+ENV PORT=${PORT}
+
+WORKDIR /app
 COPY . .
 
-ENTRYPOINT ["gunicorn", "--access-logfile - --error-logfile -", "--bind", "0.0.0.0:8000", "app:server"]
+ENTRYPOINT ["gunicorn", "app:server", "-w", "2"]

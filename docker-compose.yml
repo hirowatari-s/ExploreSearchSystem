@@ -6,5 +6,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
+      args:
+        - PORT=${PORT:-8000}
     ports:
-      - "${PORT:-8000}:8000"
+      - "8000:${PORT:-8000}"
