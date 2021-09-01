@@ -1,0 +1,8 @@
+build:
+  docker:
+    web: Dockerfile
+  config:
+    PORT: ${PORT}
+
+run:
+  web: gunicorn app:server -w 2
