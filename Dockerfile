@@ -21,4 +21,4 @@ ENV PORT=${PORT}
 WORKDIR /app
 COPY . .
 
-ENTRYPOINT ["gunicorn", "app:server", "-w", "2"]
+CMD ["gunicorn", "app:server", "-w", "2"]
