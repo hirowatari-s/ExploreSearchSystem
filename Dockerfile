@@ -19,5 +19,6 @@ ARG PORT=8000
 ENV PORT=${PORT}
 
 WORKDIR /app
+COPY . .
 
 CMD ["gunicorn", "app:server", "-w", "2", "--reload"]
