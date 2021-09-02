@@ -20,3 +20,6 @@ run:
 
 log:
 	heroku logs -t
+
+kill:
+	docker-compose down
