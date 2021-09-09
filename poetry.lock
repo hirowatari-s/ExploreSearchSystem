@@ -1,124 +1,132 @@
 [[package]]
-category = "main"
-description = "Python bindings for the Brotli compression library"
-name = "brotli"
+name = "autopep8"
+version = "1.5.7"
+description = "A tool that automatically formats Python code to conform to the PEP 8 style guide"
+category = "dev"
 optional = false
 python-versions = "*"
-version = "1.0.9"
+
+[package.dependencies]
+pycodestyle = ">=2.7.0"
+toml = "*"
 
 [[package]]
+name = "brotli"
+version = "1.0.9"
+description = "Python bindings for the Brotli compression library"
 category = "main"
-description = "Composable command line interface toolkit"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "click"
+version = "8.0.1"
+description = "Composable command line interface toolkit"
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "8.0.1"
 
 [package.dependencies]
-colorama = "*"
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [[package]]
-category = "main"
-description = "Cross-platform colored terminal text."
-marker = "platform_system == \"Windows\""
 name = "colorama"
+version = "0.4.4"
+description = "Cross-platform colored terminal text."
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "0.4.4"
 
 [[package]]
-category = "main"
-description = "A Python framework for building reactive web-apps. Developed by Plotly."
 name = "dash"
+version = "1.21.0"
+description = "A Python framework for building reactive web-apps. Developed by Plotly."
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
-version = "1.21.0"
 
 [package.dependencies]
-Flask = ">=1.0.4"
 dash-core-components = "1.17.1"
 dash-html-components = "1.1.4"
 dash-table = "4.12.0"
+Flask = ">=1.0.4"
 flask-compress = "*"
 future = "*"
 plotly = "*"
 
 [package.extras]
-dev = ["dash_flow_example (0.0.5)", "dash-dangerously-set-inner-html", "flake8 (3.9.2)", "PyYAML (5.4.1)", "fire (0.4.0)", "coloredlogs (15.0.1)", "flask-talisman (0.8.1)", "isort (4.3.21)", "pylint (1.9.5)", "mock (3.0.5)", "virtualenv (20.2.2)", "mock (4.0.3)", "black (21.6b0)", "pylint (2.8.3)"]
-testing = ["pytest-sugar (>=0.9.4)", "lxml (>=4.6.2)", "selenium (>=3.141.0)", "percy (>=2.0.2)", "requests (>=2.21.0)", "waitress (>=1.4.4)", "cryptography (<3.4)", "pytest (>=4.6,<5)", "pytest-mock (>=2.0.0,<3)", "beautifulsoup4 (>=4.8.2,<=4.9.3)", "pytest (>=6.0.2)", "pytest-mock (>=3.2.0)", "beautifulsoup4 (>=4.8.2)"]
+dev = ["dash_flow_example (==0.0.5)", "dash-dangerously-set-inner-html", "flake8 (==3.9.2)", "PyYAML (==5.4.1)", "fire (==0.4.0)", "coloredlogs (==15.0.1)", "flask-talisman (==0.8.1)", "isort (==4.3.21)", "pylint (==1.9.5)", "mock (==3.0.5)", "virtualenv (==20.2.2)", "mock (==4.0.3)", "black (==21.6b0)", "pylint (==2.8.3)"]
+testing = ["pytest-sugar (>=0.9.4)", "lxml (>=4.6.2)", "selenium (>=3.141.0)", "percy (>=2.0.2)", "requests[security] (>=2.21.0)", "waitress (>=1.4.4)", "cryptography (<3.4)", "pytest (>=4.6,<5)", "pytest-mock (>=2.0.0,<3)", "beautifulsoup4 (>=4.8.2,<=4.9.3)", "pytest (>=6.0.2)", "pytest-mock (>=3.2.0)", "beautifulsoup4 (>=4.8.2)"]
 
 [[package]]
-category = "main"
-description = "Core component suite for Dash"
 name = "dash-core-components"
-optional = false
-python-versions = "*"
 version = "1.17.1"
+description = "Core component suite for Dash"
+category = "main"
+optional = false
+python-versions = "*"
 
 [[package]]
-category = "main"
-description = "Vanilla HTML components for Dash"
 name = "dash-html-components"
-optional = false
-python-versions = "*"
 version = "1.1.4"
-
-[[package]]
+description = "Vanilla HTML components for Dash"
 category = "main"
-description = "Dash table"
-name = "dash-table"
 optional = false
 python-versions = "*"
-version = "4.12.0"
 
 [[package]]
+name = "dash-table"
+version = "4.12.0"
+description = "Dash table"
 category = "main"
-description = "A simple framework for building complex web applications."
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "flask"
+version = "2.0.1"
+description = "A simple framework for building complex web applications."
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "2.0.1"
 
 [package.dependencies]
-Jinja2 = ">=3.0"
-Werkzeug = ">=2.0"
 click = ">=7.1.2"
 itsdangerous = ">=2.0"
+Jinja2 = ">=3.0"
+Werkzeug = ">=2.0"
 
 [package.extras]
 async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
-category = "main"
-description = "Compress responses in your Flask app with gzip, deflate or brotli."
 name = "flask-compress"
+version = "1.10.1"
+description = "Compress responses in your Flask app with gzip, deflate or brotli."
+category = "main"
 optional = false
 python-versions = "*"
-version = "1.10.1"
 
 [package.dependencies]
 brotli = "*"
 flask = "*"
 
 [[package]]
-category = "main"
-description = "Clean single-source support for Python 3 and 2"
 name = "future"
+version = "0.18.2"
+description = "Clean single-source support for Python 3 and 2"
+category = "main"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-version = "0.18.2"
 
 [[package]]
-category = "main"
-description = "WSGI HTTP Server for UNIX"
 name = "gunicorn"
+version = "20.1.0"
+description = "WSGI HTTP Server for UNIX"
+category = "main"
 optional = false
 python-versions = ">=3.5"
-version = "20.1.0"
-
-[package.dependencies]
-setuptools = ">=3.0"
 
 [package.extras]
 eventlet = ["eventlet (>=0.24.1)"]
@@ -127,20 +135,20 @@ setproctitle = ["setproctitle"]
 tornado = ["tornado (>=0.2)"]
 
 [[package]]
-category = "main"
-description = "Safely pass data to untrusted environments and back."
 name = "itsdangerous"
+version = "2.0.1"
+description = "Safely pass data to untrusted environments and back."
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "2.0.1"
 
 [[package]]
-category = "main"
-description = "A very fast and expressive template engine."
 name = "jinja2"
+version = "3.0.1"
+description = "A very fast and expressive template engine."
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "3.0.1"
 
 [package.dependencies]
 MarkupSafe = ">=2.0"
@@ -149,36 +157,36 @@ MarkupSafe = ">=2.0"
 i18n = ["Babel (>=2.7)"]
 
 [[package]]
-category = "main"
-description = "Lightweight pipelining with Python functions"
 name = "joblib"
-optional = false
-python-versions = ">=3.6"
 version = "1.0.1"
-
-[[package]]
+description = "Lightweight pipelining with Python functions"
 category = "main"
-description = "Safely add untrusted strings to HTML/XML markup."
-name = "markupsafe"
 optional = false
 python-versions = ">=3.6"
-version = "2.0.1"
 
 [[package]]
+name = "markupsafe"
+version = "2.0.1"
+description = "Safely add untrusted strings to HTML/XML markup."
 category = "main"
-description = "NumPy is the fundamental package for array computing with Python."
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "numpy"
+version = "1.21.2"
+description = "NumPy is the fundamental package for array computing with Python."
+category = "main"
 optional = false
 python-versions = ">=3.7,<3.11"
-version = "1.21.2"
 
 [[package]]
-category = "main"
-description = "Powerful data structures for data analysis, time series, and statistics"
 name = "pandas"
+version = "1.3.2"
+description = "Powerful data structures for data analysis, time series, and statistics"
+category = "main"
 optional = false
 python-versions = ">=3.7.1"
-version = "1.3.2"
 
 [package.dependencies]
 numpy = ">=1.17.3"
@@ -189,43 +197,51 @@ pytz = ">=2017.3"
 test = ["hypothesis (>=3.58)", "pytest (>=6.0)", "pytest-xdist"]
 
 [[package]]
-category = "main"
-description = "An open-source, interactive data visualization library for Python"
 name = "plotly"
+version = "5.3.0"
+description = "An open-source, interactive data visualization library for Python"
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "5.3.0"
 
 [package.dependencies]
 six = "*"
 tenacity = ">=6.2.0"
 
 [[package]]
-category = "main"
-description = "Extensions to the standard Python datetime module"
+name = "pycodestyle"
+version = "2.7.0"
+description = "Python style guide checker"
+category = "dev"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+
+[[package]]
 name = "python-dateutil"
+version = "2.8.2"
+description = "Extensions to the standard Python datetime module"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
-version = "2.8.2"
 
 [package.dependencies]
 six = ">=1.5"
 
 [[package]]
-category = "main"
-description = "World timezone definitions, modern and historical"
 name = "pytz"
+version = "2021.1"
+description = "World timezone definitions, modern and historical"
+category = "main"
 optional = false
 python-versions = "*"
-version = "2021.1"
 
 [[package]]
-category = "main"
-description = "A set of python modules for machine learning and data mining"
 name = "scikit-learn"
+version = "0.24.2"
+description = "A set of python modules for machine learning and data mining"
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "0.24.2"
 
 [package.dependencies]
 joblib = ">=0.11"
@@ -240,53 +256,61 @@ examples = ["matplotlib (>=2.1.1)", "scikit-image (>=0.13)", "pandas (>=0.25.0)"
 tests = ["matplotlib (>=2.1.1)", "scikit-image (>=0.13)", "pandas (>=0.25.0)", "pytest (>=5.0.1)", "pytest-cov (>=2.9.0)", "flake8 (>=3.8.2)", "mypy (>=0.770)", "pyamg (>=4.0.0)"]
 
 [[package]]
-category = "main"
-description = "SciPy: Scientific Library for Python"
 name = "scipy"
+version = "1.7.1"
+description = "SciPy: Scientific Library for Python"
+category = "main"
 optional = false
 python-versions = ">=3.7,<3.10"
-version = "1.7.1"
 
 [package.dependencies]
 numpy = ">=1.16.5,<1.23.0"
 
 [[package]]
-category = "main"
-description = "Python 2 and 3 compatibility utilities"
 name = "six"
+version = "1.16.0"
+description = "Python 2 and 3 compatibility utilities"
+category = "main"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
-version = "1.16.0"
 
 [[package]]
-category = "main"
-description = "Retry code until it succeeds"
 name = "tenacity"
+version = "8.0.1"
+description = "Retry code until it succeeds"
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "8.0.1"
 
 [package.extras]
 doc = ["reno", "sphinx", "tornado (>=4.5)"]
 
 [[package]]
-category = "main"
-description = "threadpoolctl"
 name = "threadpoolctl"
+version = "2.2.0"
+description = "threadpoolctl"
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "2.2.0"
 
 [[package]]
-category = "main"
-description = "Fast, Extensible Progress Meter"
+name = "toml"
+version = "0.10.2"
+description = "Python Library for Tom's Obvious, Minimal Language"
+category = "dev"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
+
+[[package]]
 name = "tqdm"
+version = "4.62.2"
+description = "Fast, Extensible Progress Meter"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
-version = "4.62.2"
 
 [package.dependencies]
-colorama = "*"
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
 
 [package.extras]
 dev = ["py-make (>=0.1.0)", "twine", "wheel"]
@@ -294,22 +318,26 @@ notebook = ["ipywidgets (>=6)"]
 telegram = ["requests"]
 
 [[package]]
-category = "main"
-description = "The comprehensive WSGI web application library."
 name = "werkzeug"
+version = "2.0.1"
+description = "The comprehensive WSGI web application library."
+category = "main"
 optional = false
 python-versions = ">=3.6"
-version = "2.0.1"
 
 [package.extras]
 watchdog = ["watchdog"]
 
 [metadata]
-content-hash = "ce1ffb843172604348ebb07aa1d8dbe5bf18bd1d4036a5cb379d5ab692ee3724"
-lock-version = "1.0"
+lock-version = "1.1"
 python-versions = "~3.8.11"
+content-hash = "4ec6505dbaea9ae1933ac2ddb100b3d276ba1147618d24cbda701d2186eb1acb"
 
 [metadata.files]
+autopep8 = [
+    {file = "autopep8-1.5.7-py2.py3-none-any.whl", hash = "sha256:aa213493c30dcdac99537249ee65b24af0b2c29f2e83cd8b3f68760441ed0db9"},
+    {file = "autopep8-1.5.7.tar.gz", hash = "sha256:276ced7e9e3cb22e5d7c14748384a5cf5d9002257c0ed50c0e075b68011bb6d0"},
+]
 brotli = [
     {file = "Brotli-1.0.9-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:268fe94547ba25b58ebc724680609c8ee3e5a843202e9a381f6f9c5e8bdb5c70"},
     {file = "Brotli-1.0.9-cp27-cp27m-manylinux1_i686.whl", hash = "sha256:c2415d9d082152460f2bd4e382a1e85aed233abc92db5a3880da2257dc7daf7b"},
@@ -499,6 +527,10 @@ plotly = [
     {file = "plotly-5.3.0-py2.py3-none-any.whl", hash = "sha256:70bb0aa3920ac8d2b237361c3536b3b6a86fb722e893eaf4806591b22065e27f"},
     {file = "plotly-5.3.0.tar.gz", hash = "sha256:b6dc306c56e7d5fa7d017718894099b27290b427abf4acad8e5b77fdc3bd32ec"},
 ]
+pycodestyle = [
+    {file = "pycodestyle-2.7.0-py2.py3-none-any.whl", hash = "sha256:514f76d918fcc0b55c6680472f0a37970994e07bbb80725808c17089be302068"},
+    {file = "pycodestyle-2.7.0.tar.gz", hash = "sha256:c389c1d06bf7904078ca03399a4816f974a1d590090fecea0c63ec26ebaf1cef"},
+]
 python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
     {file = "python_dateutil-2.8.2-py2.py3-none-any.whl", hash = "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"},
@@ -574,6 +606,10 @@ tenacity = [
 threadpoolctl = [
     {file = "threadpoolctl-2.2.0-py3-none-any.whl", hash = "sha256:e5a995e3ffae202758fa8a90082e35783b9370699627ae2733cd1c3a73553616"},
     {file = "threadpoolctl-2.2.0.tar.gz", hash = "sha256:86d4b6801456d780e94681d155779058759eaef3c3564758b17b6c99db5f81cb"},
+]
+toml = [
+    {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
+    {file = "toml-0.10.2.tar.gz", hash = "sha256:b3bda1d108d5dd99f4a20d24d9c348e91c4db7ab1b749200bded2f839ccbe68f"},
 ]
 tqdm = [
     {file = "tqdm-4.62.2-py2.py3-none-any.whl", hash = "sha256:80aead664e6c1672c4ae20dc50e1cdc5e20eeff9b14aa23ecd426375b28be588"},
