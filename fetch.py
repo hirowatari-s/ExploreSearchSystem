@@ -1,8 +1,16 @@
 import urllib.request
+from urllib.parse import urlparse
 
-url = 'https://google.com/search?q=Where+can+I+get+the+best+coffee&filter=0&num=100'
+url = 'https://google.com/search?q=ファッション&filter=0&num=100'
 
 # Perform the request
+p = urlparse(url)
+query = urllib.parse.quote_plus(p.query, safe='=&')
+url = '{}://{}{}{}{}{}{}{}{}'.format(
+    p.scheme, p.netloc, p.path,
+    ';' if p.params else '', p.params,
+    '?' if p.query else '', query,
+    '#' if p.fragment else '', p.fragment)
 request = urllib.request.Request(url)
 
 # Set a normal User Agent header, otherwise Google will block the request.
@@ -20,6 +28,7 @@ soup = BeautifulSoup(html, 'html.parser')
 
 # Find all the search result divs
 divs = soup.select("#search div.g")
+
 for div in divs:
     # Search for a h3 tag
     results = div.select("h3")
