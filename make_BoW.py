@@ -75,8 +75,10 @@ tfidf = tfidf_transformer.fit_transform(feature_sparse)
 
 
 features = np.array(tfidf.todense())
-print("(文章数, 単語数)=", features.shape)
-A=np.argsort(np.sum(features, axis=0))[::-1]
-print("単語, tfidf値")
-for i in A:
-    print(cv.get_feature_names()[i], np.sum(features, axis=0)[i])
+print(features)
+np.save('data/tmp/'+keyword+'.npy', features)
+# print("(文章数, 単語数)=", features.shape)
+# A=np.argsort(np.sum(features, axis=0))[::-1]
+# print("単語, tfidf値")
+# for i in A:
+#     print(cv.get_feature_names()[i], np.sum(features, axis=0)[i])
