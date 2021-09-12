@@ -1,7 +1,9 @@
 import urllib.request
 from urllib.parse import urlparse
+import csv
 
-url = 'https://google.com/search?q=ファッション&filter=0&num=100'
+keyword = "ファッション"
+url = 'https://google.com/search?q='+ keyword +'&filter=0&num=100'
 
 # Perform the request
 p = urlparse(url)
@@ -25,25 +27,33 @@ from bs4 import BeautifulSoup
 # The code to get the html contents here.
 
 soup = BeautifulSoup(html, 'html.parser')
-
-# Find all the search result divs
 divs = soup.select("#search div.g")
 
-for div in divs:
-    # Search for a h3 tag
-    results = div.select("h3")
-    if (len(results) >= 1):
-        # Print the title
-        print(results[0].get_text())
+filename = keyword + '.csv'
 
-    # Search for a span tag
-    results = div.select("span")
-    if (len(results) >= 1):
-        # Print the snnipet
-        print("\t",  results[-1].get_text())
+with open(filename, 'w', newline='') as outcsv:
+    csvwriter = csv.writer(outcsv)
+    csvwriter.writerow(['keyword', 'site_name','snnipet',  'URL', 'ranking'])
 
-    print()
+    # Find all the search result divs
 
+    for i, div in enumerate(divs):
+        # Search for a h3 tag
+        results = div.select("h3")
+#         print(results)
+        if (len(results) >= 1):
+            # Print the title
+            site_name = results[0].get_text()
 
-# Print number of search result
-print("count:", len(divs))
+        # Search for a span tag
+        results = div.select("span")
+        if (len(results) >= 1):
+            # Print the snnipet
+            snnipet = results[-1].get_text()
+
+        results = div.select("a")
+        if (len(results) >= 1):
+            url_text = results[0].get('href')
+        
+        csvwriter.writerow([keyword, site_name, snnipet, '=HYPERLINK("' + url_text + '")', str(i+1)])
+    outcsv.close()
