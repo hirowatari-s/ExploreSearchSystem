@@ -10,22 +10,27 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 from webapp import app
+import pickle
 
+with open("data/tmp/ファッション_SOM.pickle", "rb") as f:
+    som = pickle.load(f)
+
+Z = som.history['z'][-1]
 data_num = 10
 demo_z = np.random.randint(0, 10, (data_num, 2))
 #検索結果順に色つけるやつ
-color = np.arange(1, data_num+1)
+color = Z[:, 0]
 df_demo = pd.DataFrame({
-    "x": demo_z[:, 0],
-    "y": demo_z[:, 1],
+    "x": Z[:, 0],
+    "y": Z[:, 1],
     "c": color,
-    "page_title": ["af","gd","gaj","fdfd","olo","maaa","fd","qrer","ddd","lkl"]
+    "page_title": [chr(ord("a")+i) for i in range(Z.shape[0])]
 })
-# fig = px.scatter(x=demo_data[:, 0], y=demo_data[:, 1],
-#                  width=800, height=800, color=color)
 fig = px.scatter(df_demo, x="x", y="y",
-                 width=800, height=800, color="c", size="c",
-                 hover_name="page_title")
+                 width=800, height=800, color="c",
+                 hover_name="page_title"
+                 )
+
 
 #sampleコード
 # assume you have a "long-form" data frame
