@@ -15,6 +15,10 @@ import pickle
 with open("data/tmp/ファッション_SOM.pickle", "rb") as f:
     som = pickle.load(f)
 
+
+labels = np.load("data/tmp/ファッション_label.npy")
+
+
 Z = som.history['z'][-1]
 data_num = 10
 demo_z = np.random.randint(0, 10, (data_num, 2))
@@ -24,7 +28,7 @@ df_demo = pd.DataFrame({
     "x": Z[:, 0],
     "y": Z[:, 1],
     "c": color,
-    "page_title": [chr(ord("a")+i) for i in range(Z.shape[0])]
+    "page_title": labels,
 })
 fig = px.scatter(df_demo, x="x", y="y",
                  width=800, height=800, color="c",
