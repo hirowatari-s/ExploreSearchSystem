@@ -144,6 +144,10 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
+# mac file
+.DS_Store
+.idea
+
 ### VirtualEnv ###
 # Virtualenv
 # http://iamzed.com/2009/05/07/a-primer-on-virtualenv/

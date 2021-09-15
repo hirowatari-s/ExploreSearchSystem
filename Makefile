@@ -15,7 +15,7 @@ deploy:
 	heroku open
 
 run:
-	docker-compose up -d
+	docker-compose up -d --build
 	$(OPEN_CMD) http://localhost:8000
 
 log:
