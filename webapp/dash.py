@@ -4,6 +4,7 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
+from dash.dependencies import Input, Output
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
@@ -48,7 +49,7 @@ fig = px.scatter(df_demo, x="x", y="y",
 # fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
 
 app.layout = html.Div(children=[
-    html.H1(children='Hello Dash'),
+    html.H1(id='title', children='Hello Dash'),
 
     html.Div(children='''
         Dash: A web application framework for Python.
@@ -57,5 +58,17 @@ app.layout = html.Div(children=[
     dcc.Graph(
         id='example-graph',
         figure=fig
+    ),
+
+    html.A(
+        id='link',
+        href='#',
+        children="ahiahi"
     )
 ])
+
+@app.callback(Output('link', 'children'),
+              Input('example-graph', 'hoverData'))
+def update_title(hoverData):
+    index = hoverData['points'][0]['pointIndex']
+    return labels[index]
