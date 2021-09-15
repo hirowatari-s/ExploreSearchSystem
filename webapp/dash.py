@@ -13,6 +13,7 @@ from webapp import app
 
 data_num = 10
 demo_z = np.random.randint(0, 10, (data_num, 2))
+#検索結果順に色つけるやつ
 color = np.arange(1, data_num+1)
 df_demo = pd.DataFrame({
     "x": demo_z[:, 0],
@@ -26,13 +27,14 @@ fig = px.scatter(df_demo, x="x", y="y",
                  width=800, height=800, color="c", size="c",
                  hover_name="page_title")
 
+#sampleコード
 # assume you have a "long-form" data frame
 # see https://plotly.com/python/px-arguments/ for more options
-df = pd.DataFrame({
-    "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-    "Amount": [4, 1, 20, 20, 4, 5],
-    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-})
+# df = pd.DataFrame({
+#     "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
+#     "Amount": [4, 1, 20, 20, 4, 5],
+#     "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
+# })
 
 # fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
 
