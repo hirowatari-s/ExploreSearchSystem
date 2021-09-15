@@ -17,6 +17,9 @@ with open("data/tmp/ファッション_SOM.pickle", "rb") as f:
     som = pickle.load(f)
 
 
+csv_df = pd.read_csv("ファッション.csv")
+
+
 labels = np.load("data/tmp/ファッション_label.npy")
 
 
@@ -63,12 +66,22 @@ app.layout = html.Div(children=[
     html.A(
         id='link',
         href='#',
-        children="ahiahi"
+        children="ahiahi",
+        target="_blank",
     )
 ])
 
-@app.callback(Output('link', 'children'),
-              Input('example-graph', 'hoverData'))
+@app.callback([
+        Output('link', 'children'),
+        Output('link', 'href')
+    ],
+    Input('example-graph', 'hoverData'))
 def update_title(hoverData):
-    index = hoverData['points'][0]['pointIndex']
-    return labels[index]
+    if hoverData:
+        index = hoverData['points'][0]['pointIndex']
+        retvalue = labels[index]
+        print(csv_df['URL'][index][12:-2])
+        url = csv_df['URL'][index][12:-2]
+    else:
+        retvalue = "ahiahi"
+    return retvalue, url
