@@ -1,10 +1,10 @@
 from som import SOM
 import numpy as np
-from dev.Grad_norm import Grad_Norm
 import pickle
 
 
 if __name__ == '__main__':
+    from dev.Grad_norm import Grad_Norm
 
     keyword = "ファッション"
     model = "SOM"
