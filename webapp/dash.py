@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 from webapp import app
 import pickle
+from fit import SOM
 
 with open("data/tmp/ファッション_SOM.pickle", "rb") as f:
     som = pickle.load(f)
@@ -63,6 +64,16 @@ app.layout = html.Div(children=[
         figure=fig
     ),
 
+    dcc.Dropdown(
+        id='dropdown',
+        options=[
+            {'label': 'ファッション', 'value': 'ファッション'},
+            {'label': '機械学習', 'value': '機械学習'},
+            {'label': 'あっぷる', 'value': 'あっぷる'}
+        ],
+        value='ファッション'
+    ),
+
     html.A(
         id='link',
         href='#',
@@ -76,6 +87,7 @@ app.layout = html.Div(children=[
         Output('link', 'href')
     ],
     Input('example-graph', 'hoverData'))
+
 def update_title(hoverData):
     if hoverData:
         index = hoverData['points'][0]['pointIndex']
@@ -84,4 +96,49 @@ def update_title(hoverData):
         url = csv_df['URL'][index][12:-2]
     else:
         retvalue = "ahiahi"
+        url = "#"
     return retvalue, url
+
+@app.callback(
+    Output('example-graph', 'figure'),
+    Input('dropdown', 'value'))
+
+def load_learning(value):
+    global csv_df
+    print("関数呼び込んでます")
+    keyword=value
+    csv_df = pd.read_csv(keyword+".csv")
+    labels = np.load("data/tmp/"+keyword+"_label.npy")
+
+    feature_file = 'data/tmp/'+keyword+'.npy'
+    X = np.load(feature_file)
+
+    nb_epoch = 50
+    resolution = 10
+    sigma_max = 2.2
+    sigma_min = 0.3
+    tau = 50
+    latent_dim = 2
+    seed = 1
+
+    np.random.seed(seed)
+
+    som = SOM(X, latent_dim=latent_dim, resolution=resolution, sigma_max=sigma_max, sigma_min=sigma_min, tau=tau,
+              init='PCA')
+    som.fit(nb_epoch=nb_epoch)
+    print("学習終わりました")
+    Z = som.history['z'][-1]
+
+    # 検索結果順に色つけるやつ
+    color = Z[:, 0]
+    df_demo = pd.DataFrame({
+        "x": Z[:, 0],
+        "y": Z[:, 1],
+        "c": color,
+        "page_title": labels,
+    })
+    fig = px.scatter(df_demo, x="x", y="y",
+                     width=800, height=800, color="c",
+                     hover_name="page_title"
+                     )
+    return fig
