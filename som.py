@@ -110,3 +110,5 @@ class SOM:
             self.history['z'][epoch] = self.Z
             self.history['y'][epoch] = self.Y
             self.history['sigma'][epoch] = self.sigma
+
+    

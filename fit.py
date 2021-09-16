@@ -40,5 +40,5 @@ if __name__ == '__main__':
     som_umatrix.draw_umatrix()
 
 
-    with open('data/tmp/'+keyword+'_'+model+'.pickle', 'wb') as f:
-        pickle.dump(som, f)
+    # with open('data/tmp/'+keyword+'_'+model+'.pickle', 'wb') as f:
+    #     pickle.dump(som, f)
