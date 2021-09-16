@@ -5,6 +5,7 @@
 
 
 from dash.dependencies import Input, Output
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
@@ -51,23 +52,27 @@ fig = px.scatter(df_demo, x="x", y="y",
 
 # fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
 
-app.layout = html.Div(children=[
+app.layout = dbc.Container(children=[
     html.H1(id='title', children='Hello Dash'),
-
     html.Div(children='''
         Dash: A web application framework for Python.
     '''),
+    html.Hr(),
 
-    dcc.Graph(
-        id='example-graph',
-        figure=fig
-    ),
+    dbc.Row([
+        dbc.Col(
+            dcc.Graph(
+                id='example-graph',
+                figure=fig
+        ), md=12),
+    ], align="center"),
 
     html.A(
         id='link',
         href='#',
         children="ahiahi",
         target="_blank",
+        className="btn btn-outline-primary btn-lg",
     )
 ])
 
@@ -84,4 +89,5 @@ def update_title(hoverData):
         url = csv_df['URL'][index][12:-2]
     else:
         retvalue = "ahiahi"
+        url = "#"
     return retvalue, url
