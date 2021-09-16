@@ -6,6 +6,7 @@
 
 from dash.dependencies import Input, Output
 import dash_bootstrap_components as dbc
+from dash_bootstrap_components._components.CardBody import CardBody
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.express as px
@@ -36,7 +37,8 @@ df_demo = pd.DataFrame({
     "page_title": labels,
 })
 fig = px.scatter(df_demo, x="x", y="y",
-                 width=800, height=800, color="c",
+                #  width=800, height=800,
+                 color="c",
                  hover_name="page_title"
                  )
 
@@ -51,6 +53,17 @@ fig = px.scatter(df_demo, x="x", y="y",
 # })
 
 # fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
+link_card = dbc.Card([
+    html.P("", id="card-text"),
+    html.A(
+        id='link',
+        href='#',
+        children="マウスを当ててみよう",
+        target="_self",
+        className="btn btn-outline-primary btn-lg",
+    )
+], id="link-card")
+
 
 app.layout = dbc.Container(children=[
     html.H1(id='title', children='Hello Dash'),
@@ -64,30 +77,30 @@ app.layout = dbc.Container(children=[
             dcc.Graph(
                 id='example-graph',
                 figure=fig
-        ), md=12),
+        ), md=8),
+        dbc.Col(link_card, md=4)
     ], align="center"),
-
-    html.A(
-        id='link',
-        href='#',
-        children="ahiahi",
-        target="_blank",
-        className="btn btn-outline-primary btn-lg",
-    )
 ])
 
 @app.callback([
         Output('link', 'children'),
-        Output('link', 'href')
+        Output('link', 'href'),
+        Output('link', 'target'),
+        Output('card-text', 'children'),
     ],
     Input('example-graph', 'hoverData'))
 def update_title(hoverData):
     if hoverData:
         index = hoverData['points'][0]['pointIndex']
-        retvalue = labels[index]
+        page_title = labels[index]
         print(csv_df['URL'][index][12:-2])
+        link_title = "サイトへ Go"
         url = csv_df['URL'][index][12:-2]
+
+        target = "_blank"
     else:
-        retvalue = "ahiahi"
+        link_title = "マウスを当ててみよう"
         url = "#"
-    return retvalue, url
+        target = "_self"
+        page_title = ""
+    return link_title, url, target, page_title
