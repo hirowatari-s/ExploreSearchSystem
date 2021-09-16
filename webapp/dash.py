@@ -54,6 +54,12 @@ fig = px.scatter(df_demo, x="x", y="y",
 
 # fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
 link_card = dbc.Card([
+    dbc.CardImg(
+        id="card-img",
+        src="https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png",
+        top=True,
+        className="img-fluid img-thumbnail"
+    ),
     html.P("", id="card-text"),
     html.A(
         id='link',
@@ -87,20 +93,23 @@ app.layout = dbc.Container(children=[
         Output('link', 'href'),
         Output('link', 'target'),
         Output('card-text', 'children'),
+        Output('card-img', 'src'),
     ],
     Input('example-graph', 'hoverData'))
 def update_title(hoverData):
     if hoverData:
         index = hoverData['points'][0]['pointIndex']
-        page_title = labels[index]
         print(csv_df['URL'][index][12:-2])
+
         link_title = "サイトへ Go"
         url = csv_df['URL'][index][12:-2]
-
         target = "_blank"
+        page_title = labels[index]
+        favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
     else:
         link_title = "マウスを当ててみよう"
         url = "#"
         target = "_self"
         page_title = ""
-    return link_title, url, target, page_title
+        favicon_url = "https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png"
+    return link_title, url, target, page_title, favicon_url
