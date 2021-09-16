@@ -38,54 +38,61 @@ df_demo = pd.DataFrame({
     "c": color,
     "page_title": labels,
 })
+
+umatrix = Grad_Norm(X=X, Z=Z, sigma=som.history['sigma'][-1],
+                        labels=labels, resolution=100, title_text="dammy"
+                        )
+U_matrix, resolution, zeta = umatrix.calc_umatrix()
+
+# View
+# fig = px.scatter(df_demo, x="x", y="y",
+#                  width=800, height=800, color="c",
+#                  hover_name="page_title"
+#                  )
+
 fig = go.Figure(
         layout=go.Layout(
             xaxis={
-                'range': [self.data[:, 0].min() - 0.1, self.data[:, 0].max() + 0.1],
+                'range': [Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
                 'visible': False
             },
             yaxis={
-                'range': [self.data[:, 1].min() - 0.1, self.data[:, 1].max() + 0.1],
+                'range': [Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
                 'visible': False,
                 'scaleanchor': 'x',
                 'scaleratio': 1.0
             },
             showlegend=False,
+            width=800, height=800
             # **self.params_figure_layout
         )
     )
-fig = px.scatter(df_demo, x="x", y="y",
-                 width=800, height=800, color="c",
-                 hover_name="page_title"
-                 )
-# fig = make_subplots(rows=1, cols=2)
-# fig.add_trace(px.scatter(df_demo, x="x", y="y",
-#                  width=800, height=800, color="c",
-#                  hover_name="page_title")
-#                 , row=1, col=1
-#             )
 
-som_umatrix = Grad_Norm(X=X,
-                        Z=Z,
-                        sigma=som.history['sigma'][-1],
-                        labels=labels,
-                        resolution=100,
-                        title_text="dammy"
-                        )
-U_matrix, resolution, zeta = som_umatrix.calc_umatrix()
 
 fig.add_trace(
     go.Contour(x=np.linspace(-1, 1, resolution),
                 y=np.linspace(-1, 1, resolution),
                 z=U_matrix.reshape(resolution, resolution),
                 name='contour'
-                # **self.params_contour
                 )
-                # , row=1, col=2
 )
-fig.update_layout(legend_title_text='Trend')
 
-
+fig.add_trace(
+    go.Scatter(
+        x=Z[:, 0], y=Z[:, 1],
+        mode="markers",
+        name='lv',
+        marker=dict(
+            size=13,
+            # line=dict(
+            #     width=1.5,
+            #     color="white"
+            # ),
+        ),
+        text=labels)
+    )
+# fig.update_layout(hovermode="lv")
+# fig.update_layout(legend_title_text='Trend')
 
 
 
