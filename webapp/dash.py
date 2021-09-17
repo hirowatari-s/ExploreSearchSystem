@@ -213,12 +213,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
 
 
 app.clientside_callback(
-    """
-    function(clickData) {
-        const url = document.getElementById("link").href;
-        window.open(url);
-    }
-    """,
+    "onLatentClicked",
     Output('explore-start', 'outline'),
     Input('example-graph', 'clickData'))
 
