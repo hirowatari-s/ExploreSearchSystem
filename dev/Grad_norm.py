@@ -1,10 +1,10 @@
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import scipy.spatial.distance as dist
 from sklearn.preprocessing import StandardScaler
-import matplotlib.animation
+# import matplotlib.animation
 from dev.calc_grad_norm_of_ks import calc_grad_norm_of_ks as calc_grad_norm
-import japanize_matplotlib
+# import japanize_matplotlib
 
 
 class Grad_Norm:
@@ -59,8 +59,8 @@ class Grad_Norm:
         self.K = resolution ** self.L
 
         # 描画キャンバスの設定
-        self.Fig = plt.figure(figsize=(fig_size[0], fig_size[1]))
-        self.Map = self.Fig.add_subplot(1, 1, 1)
+        # self.Fig = plt.figure(figsize=(fig_size[0], fig_size[1]))
+        # self.Map = self.Fig.add_subplot(1, 1, 1)
         self.Cmap_type = cmap_type
         self.labels = labels
         if self.labels is None:
@@ -76,6 +76,17 @@ class Grad_Norm:
             np.linspace(self.Z_allepoch[:, :, 1].min(), self.Z_allepoch[:, :, 1].max(), self.resolution))
         self.Zeta = np.dstack(self.Zeta).reshape(self.K, self.L)
 
+    def calc_umatrix(self):
+
+        # Grad_normの初期状態を表示する
+        Z = self.Z_allepoch[0, :, :]
+        sigma = self.sigma_allepoch[0]
+
+        # Grad_norm表示用の値を算出
+        dY_std = calc_grad_norm(Zeta=self.Zeta, Z=Z, X=self.X, sigma=sigma) # return value in [-2.0,2.0]
+        # U_matrix_val = dY_std.reshape((self.resolution, self.resolution))
+
+        return dY_std, self.resolution, self.Zeta
     # Grad_norm表示
     def draw_umatrix(self):
 
