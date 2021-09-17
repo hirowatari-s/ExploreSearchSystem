@@ -212,6 +212,34 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
     return link_title, url, target, page_title #, favicon_url
 
 
+# モーダルの Toggler
+def toggle_modal(n1, n2, is_open):
+    if n1 or n2:
+        return not is_open
+    return is_open
+
+
+# U-Matrix の説明用のモーダル
+umatrix_modal = dbc.Modal([
+    dbc.ModalHeader("U-Matrix 表示とは？"),
+    dbc.ModalBody("説明"),
+    dbc.ModalFooter(
+        dbc.Button(
+            "Close", id="close-umatrix-modal", className="ml-auto", n_clicks=0
+        )
+    ),
+], id="umatrix-modal", is_open=False, centered=True)
+
+
+app.callback(
+    Output('umatrix-modal', 'is_open'),
+    [
+        Input('open-umatrix-modal', 'n_clicks'),
+        Input('close-umatrix-modal', 'n_clicks'),
+    ],
+    State('umatrix-modal', 'is_open'))(toggle_modal)
+
+
 link_card = dbc.Card([
     # dbc.CardImg(
     #     id="card-img",
@@ -236,6 +264,10 @@ app.layout = dbc.Container(children=[
         Dash: A web application framework for Python.
     '''),
     html.Hr(),
+    dbc.Button(
+        "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
+    ),
+    umatrix_modal,
 
     dbc.Row([
         dbc.Col(
