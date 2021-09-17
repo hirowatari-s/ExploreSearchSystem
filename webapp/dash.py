@@ -33,8 +33,12 @@ def make_figure(keyword):
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
         df = fetch_gsearch_result(keyword)
-        df.to_csv(keyword+".csv")
         X , labels, df = make_bow(df)
+        df.to_csv(keyword+".csv")
+        feature_file = 'data/tmp/'+keyword+'.npy'
+        label_file = 'data/tmp/'+keyword+'_label.npy'
+        np.save(feature_file, X)
+        np.save(label_file, labels)
 
 
     # Learn model
