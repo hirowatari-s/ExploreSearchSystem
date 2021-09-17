@@ -12,8 +12,8 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from webapp import app
-from dev.Grad_norm import Grad_Norm
-from fit import SOM
+from Grad_norm import Grad_Norm
+from som import ManifoldModeling as MM
 import pathlib
 from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
@@ -25,7 +25,7 @@ SAMPLE_DATASETS = [
 ]
 
 
-def make_figure(keyword):
+def make_figure(keyword, model_name):
     # Load data
     if keyword in SAMPLE_DATASETS:
         csv_df = pd.read_csv(keyword+".csv")
@@ -51,24 +51,25 @@ def make_figure(keyword):
     seed = 1
 
     np.random.seed(seed)
-    som = SOM(
+    mm = MM(
         X,
         latent_dim=latent_dim,
         resolution=resolution,
         sigma_max=sigma_max,
         sigma_min=sigma_min,
+        model_name=model_name,
         tau=tau,
         init='PCA'
     )
-    som.fit(nb_epoch=nb_epoch)
+    mm.fit(nb_epoch=nb_epoch)
     print("Learning finished.")
-    Z = som.history['z'][-1]
+    Z = mm.history['z'][-1]
 
     # Make U-Matrix
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
-        sigma=som.history['sigma'][-1],
+        sigma=mm.history['sigma'][-1],
         labels=labels, resolution=100, title_text="dammy"
     )
     U_matrix, resolution, _ = umatrix.calc_umatrix()
@@ -87,7 +88,6 @@ def make_figure(keyword):
                 'scaleratio': 1.0
             },
             showlegend=False,
-            # **self.params_figure_layout
         ),
     )
     fig.add_trace(
@@ -107,10 +107,6 @@ def make_figure(keyword):
             name='lv',
             marker=dict(
                 size=13,
-                # line=dict(
-                #     width=1.5,
-                #     color="white"
-                # ),
             ),
             text=labels
         )
@@ -133,8 +129,6 @@ def make_figure(keyword):
     )
 
     return fig
-# fig.update_layout(hovermode="lv")
-# fig.update_layout(legend_title_text='Trend')
 
 
 def make_search_form(style):
@@ -154,13 +148,13 @@ def make_search_form(style):
             placeholder="検索ワードを入力してください",
         )
 
-
 @app.callback(
     Output('example-graph', 'figure'),
     Input('explore-start', 'n_clicks'),
-    State('search-form', 'value'))
-def load_learning(n_clicks, keyword):
-    return make_figure(keyword)
+    State('search-form', 'value'),
+    State('model-selector', 'value'))
+def load_learning(n_clicks, keyword, model_name):
+    return make_figure(keyword, model_name)
 
 
 @app.callback(
@@ -242,7 +236,7 @@ app.layout = dbc.Container(children=[
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph',
-                    figure=make_figure("ファッション"),
+                    figure=make_figure("ファッション", "UKR"),
                     config=dict(
                         displayModeBar=False,
                     )
@@ -252,6 +246,15 @@ app.layout = dbc.Container(children=[
             md=8),
         dbc.Col(link_card, md=4)
     ], align="center"),
+    dbc.RadioItems(
+            options=[
+                {'label': 'SOM', 'value': 'SOM'},
+                {'label': 'UKR', 'value': 'UKR'},
+            ],
+            value='UKR',
+            id="model-selector",
+            style={'textAlign': "center"}
+        ),
     dbc.RadioItems(
         options=[
             {'label': 'サンプルのデータセット', 'value': 'selection'},
