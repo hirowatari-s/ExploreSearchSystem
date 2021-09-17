@@ -84,6 +84,7 @@ if __name__ == '__main__':
     features, labels, df = make_bow(df)
 
     print(features)
+    print(features.shape)
     feature_file = 'data/tmp/'+keyword+'.npy'
     label_file = 'data/tmp/'+keyword+'_label.npy'
     np.save(feature_file, features)
