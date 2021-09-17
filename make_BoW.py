@@ -47,10 +47,7 @@ def create_stopwords(file_path):
     return stop_words
 
 
-def make_bow(keyword):
-    # Load file
-    df = pd.read_csv(keyword + '.csv')
-
+def make_bow(df):
     # Drop Miss Data
     cb1 = (df['snippet'] == 'キャッシュ' )
     cb2 = (df['snippet'] == '類似ページ' )
@@ -81,8 +78,10 @@ def make_bow(keyword):
 
 
 if __name__ == '__main__':
+    # Load file
     keyword = "ペット"
-    features, labels, df = make_bow(keyword)
+    df = pd.read_csv(keyword + '.csv')
+    features, labels, df = make_bow(df)
 
     print(features)
     feature_file = 'data/tmp/'+keyword+'.npy'
