@@ -77,7 +77,8 @@ def make_figure(keyword):
             x=np.linspace(-1, 1, resolution),
             y=np.linspace(-1, 1, resolution),
             z=U_matrix.reshape(resolution, resolution),
-            name='contour'
+            name='contour',
+            colorscale="viridis",
         )
     )
     fig.add_trace(
