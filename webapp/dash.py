@@ -98,6 +98,7 @@ def make_figure(keyword, model_name):
             name='contour',
             colorscale="viridis",
             hoverinfo='skip',
+            showscale=False,
         ),
     )
     fig.add_trace(
