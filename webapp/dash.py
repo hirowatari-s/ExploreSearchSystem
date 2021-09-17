@@ -4,54 +4,59 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
 import plotly.express as px
 import pandas as pd
 import numpy as np
-from plotly.subplots import make_subplots
 from webapp import app
-import pickle
 from dev.Grad_norm import Grad_Norm
 from fit import SOM
 
-with open("data/tmp/ファッション_SOM.pickle", "rb") as f:
-    som = pickle.load(f)
 
+def make_figure(keyword):
+    # Load data
+    csv_df = pd.read_csv(keyword+".csv")
+    labels = csv_df['site_name']
+    X = np.load("data/tmp/" + keyword + ".npy")
 
-csv_df = pd.read_csv("ファッション.csv")
+    # Learn model
+    nb_epoch = 50
+    resolution = 20
+    sigma_max = 2.2
+    sigma_min = 0.3
+    tau = 50
+    latent_dim = 2
+    seed = 1
 
+    np.random.seed(seed)
+    som = SOM(
+        X,
+        latent_dim=latent_dim,
+        resolution=resolution,
+        sigma_max=sigma_max,
+        sigma_min=sigma_min,
+        tau=tau,
+        init='PCA'
+    )
+    som.fit(nb_epoch=nb_epoch)
+    print("Learning finished.")
+    Z = som.history['z'][-1]
 
-labels = np.load("data/tmp/ファッション_label.npy")
-X = np.load("data/tmp/ファッション.npy")
+    # Make U-Matrix
+    umatrix = Grad_Norm(
+        X=X,
+        Z=Z,
+        sigma=som.history['sigma'][-1],
+        labels=labels, resolution=100, title_text="dammy"
+    )
+    U_matrix, resolution, _ = umatrix.calc_umatrix()
 
-
-Z = som.history['z'][-1]
-data_num = 10
-demo_z = np.random.randint(0, 10, (data_num, 2))
-#検索結果順に色つけるやつ
-color = Z[:, 0]
-df_demo = pd.DataFrame({
-    "x": Z[:, 0],
-    "y": Z[:, 1],
-    "c": color,
-    "page_title": labels,
-})
-
-umatrix = Grad_Norm(X=X, Z=Z, sigma=som.history['sigma'][-1],
-                        labels=labels, resolution=100, title_text="dammy"
-                        )
-U_matrix, resolution, zeta = umatrix.calc_umatrix()
-
-# View
-# fig = px.scatter(df_demo, x="x", y="y",
-#                  width=800, height=800, color="c",
-#                  hover_name="page_title"
-#                  )
-
-fig = go.Figure(
+    # Build figure
+    fig = go.Figure(
         layout=go.Layout(
             xaxis={
                 'range': [Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
@@ -64,62 +69,142 @@ fig = go.Figure(
                 'scaleratio': 1.0
             },
             showlegend=False,
-            width=800, height=800
             # **self.params_figure_layout
+        ),
+    )
+    fig.add_trace(
+        go.Contour(
+            x=np.linspace(-1, 1, resolution),
+            y=np.linspace(-1, 1, resolution),
+            z=U_matrix.reshape(resolution, resolution),
+            name='contour',
+            colorscale="viridis",
         )
     )
-
-
-fig.add_trace(
-    go.Contour(x=np.linspace(-1, 1, resolution),
-                y=np.linspace(-1, 1, resolution),
-                z=U_matrix.reshape(resolution, resolution),
-                name='contour'
-                )
-)
-
-fig.add_trace(
-    go.Scatter(
-        x=Z[:, 0], y=Z[:, 1],
-        mode="markers",
-        name='lv',
-        marker=dict(
-            size=13,
-            # line=dict(
-            #     width=1.5,
-            #     color="white"
-            # ),
-        ),
-        text=labels)
+    fig.add_trace(
+        go.Scatter(
+            x=Z[:, 0],
+            y=Z[:, 1],
+            mode="markers",
+            name='lv',
+            marker=dict(
+                size=13,
+                # line=dict(
+                #     width=1.5,
+                #     color="white"
+                # ),
+            ),
+            text=labels
+        )
     )
+    fig.update_coloraxes(
+        showscale=False
+    )
+    fig.update_layout(
+        plot_bgcolor="white",
+    )
+    fig.update(
+        layout_coloraxis_showscale=False,
+        layout_showlegend=False,
+    )
+    fig.update_yaxes(
+        fixedrange=True,
+    )
+    fig.update_xaxes(
+        fixedrange=True,
+    )
+
+    return fig
 # fig.update_layout(hovermode="lv")
 # fig.update_layout(legend_title_text='Trend')
 
 
+@app.callback(
+    Output('example-graph', 'figure'),
+    Input('dropdown', 'value'))
+def load_learning(value):
+    return make_figure(value)
 
-#sampleコード
-# assume you have a "long-form" data frame
-# see https://plotly.com/python/px-arguments/ for more options
-# df = pd.DataFrame({
-#     "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-#     "Amount": [4, 1, 20, 20, 4, 5],
-#     "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-# })
 
-# fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
+@app.callback([
+        Output('link', 'children'),
+        Output('link', 'href'),
+        Output('link', 'target'),
+        Output('card-text', 'children'),
+        # Output('card-img', 'src'),
+    ],
+    [
+        Input('example-graph', 'hoverData'),
+    ],
+    [
+        State('dropdown', 'value'),
+        State('link', 'children'),
+        State('link', 'href'),
+        State('link', 'target'),
+        State('card-text', 'children'),
+    ])
+def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title):
+    print(hoverData)
+    if hoverData:
+        if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]):
+            link_title = prev_linktext
+            url = prev_url
+            target = prev_target
+            page_title = prev_page_title
+        else:
+            csv_df = pd.read_csv(keyword+".csv")
+            index = hoverData['points'][0]['pointIndex']
+            link_title = "サイトへ Go"
+            labels = csv_df['site_name']
+            url = csv_df['URL'][index][12:-2]
+            target = "_blank"
+            page_title = labels[index]
+            # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+    else:
+        link_title = "マウスを当ててみよう"
+        url = "#"
+        target = "_self"
+        page_title = ""
+        # favicon_url = "https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png"
+    return link_title, url, target, page_title #, favicon_url
 
-app.layout = html.Div(children=[
+
+link_card = dbc.Card([
+    # dbc.CardImg(
+    #     id="card-img",
+    #     src="https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png",
+    #     top=True,
+    #     className="img-fluid img-thumbnail",
+    #     style="height: 50px; width: 50px;",
+    # ),
+    html.P("", id="card-text", className="h4"),
+    html.A(
+        id='link',
+        href='#',
+        children="マウスを当ててみよう",
+        target="_self",
+        className="btn btn-outline-primary btn-lg",
+    )
+], id="link-card")
+
+app.layout = dbc.Container(children=[
     html.H1(id='title', children='Hello Dash'),
-
     html.Div(children='''
         Dash: A web application framework for Python.
     '''),
+    html.Hr(),
 
-    dcc.Graph(
-        id='example-graph',
-        figure=fig
-    ),
-
+    dbc.Row([
+        dbc.Col(
+            dcc.Graph(
+                id='example-graph',
+                figure=make_figure("ファッション"),
+                config=dict(
+                    displayModeBar=False,
+                )
+        ), md=8),
+        dbc.Col(link_card, md=4)
+    ], align="center"),
     dcc.Dropdown(
         id='dropdown',
         options=[
@@ -129,72 +214,4 @@ app.layout = html.Div(children=[
         ],
         value='ファッション'
     ),
-
-    html.A(
-        id='link',
-        href='#',
-        children="ahiahi",
-        target="_blank",
-    )
 ])
-
-@app.callback([
-        Output('link', 'children'),
-        Output('link', 'href')
-    ],
-    Input('example-graph', 'hoverData'))
-
-def update_title(hoverData):
-    if hoverData:
-        index = hoverData['points'][0]['pointIndex']
-        retvalue = labels[index]
-        print(csv_df['URL'][index][12:-2])
-        url = csv_df['URL'][index][12:-2]
-    else:
-        retvalue = "ahiahi"
-        url = "#"
-    return retvalue, url
-
-@app.callback(
-    Output('example-graph', 'figure'),
-    Input('dropdown', 'value'))
-
-def load_learning(value):
-    global csv_df
-    print("関数呼び込んでます")
-    keyword=value
-    csv_df = pd.read_csv(keyword+".csv")
-    labels = np.load("data/tmp/"+keyword+"_label.npy")
-
-    feature_file = 'data/tmp/'+keyword+'.npy'
-    X = np.load(feature_file)
-
-    nb_epoch = 50
-    resolution = 10
-    sigma_max = 2.2
-    sigma_min = 0.3
-    tau = 50
-    latent_dim = 2
-    seed = 1
-
-    np.random.seed(seed)
-
-    som = SOM(X, latent_dim=latent_dim, resolution=resolution, sigma_max=sigma_max, sigma_min=sigma_min, tau=tau,
-              init='PCA')
-    som.fit(nb_epoch=nb_epoch)
-    print("学習終わりました")
-    Z = som.history['z'][-1]
-
-    # 検索結果順に色つけるやつ
-    color = Z[:, 0]
-    df_demo = pd.DataFrame({
-        "x": Z[:, 0],
-        "y": Z[:, 1],
-        "c": color,
-        "page_title": labels,
-    })
-    fig = px.scatter(df_demo, x="x", y="y",
-                     width=800, height=800, color="c",
-                     hover_name="page_title"
-                     )
-    return fig

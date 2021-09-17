@@ -11,7 +11,7 @@ import re
 # 助詞いらないよ
 def wakati(text):
     tagger = MeCab.Tagger('')
-    tagger.parse('') 
+    tagger.parse('')
     node = tagger.parseToNode(text)
     word_list = []
     while node:
@@ -43,10 +43,10 @@ def create_stopwords(file_path):
         w = w.replace('\n','')
         if len(w) > 0:
           stop_words.append(w)
-    return stop_words    
+    return stop_words
 
 # Load file
-keyword = "あっぷる"
+keyword = "機械学習"
 filename = keyword + '.csv'
 df = pd.read_csv(filename)
 
@@ -66,7 +66,7 @@ path = "stop_words.txt"
 download_stopwords(path)
 stop_words = create_stopwords(path)
 
-# Execute 
+# Execute
 cv = CountVectorizer(stop_words=stop_words, token_pattern=u'(?u)\\b\\w+\\b', max_df=50, min_df=3)
 feature_sparse = cv.fit_transform(df["target"])
 # Tfidf
@@ -79,8 +79,10 @@ print(features)
 print(features.shape)
 feature_file = 'data/tmp/'+keyword+'.npy'
 label_file = 'data/tmp/'+keyword+'_label.npy'
-# np.save(feature_file, features)
-# np.save(label_file, df['site_name'].tolist())
+np.save(feature_file, features)
+np.save(label_file, df['site_name'].tolist())
+df.to_csv(filename)
+
 # np.save(label_file, cv.get_feature_names())
 
 # print("(文章数, 単語数)=", features.shape)
