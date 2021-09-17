@@ -28,6 +28,7 @@ PROJECT_ROOT = pathlib.Path('.')
 SAMPLE_DATASETS = [
     csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
 ]
+domain_favicon_map = dict()
 
 
 def make_figure(keyword, model_name, enable_favicon=False):
@@ -131,7 +132,6 @@ def make_figure(keyword, model_name, enable_favicon=False):
     )
 
     if enable_favicon:
-        domain_favicon_map = dict()
         for i, z in enumerate(Z):
             url = csv_df['URL'][i]
             parser = urlparse(url)
