@@ -202,13 +202,17 @@ app.layout = dbc.Container(children=[
 
     dbc.Row([
         dbc.Col(
-            dcc.Graph(
-                id='example-graph',
-                figure=make_figure("ファッション"),
-                config=dict(
-                    displayModeBar=False,
-                )
-        ), md=8),
+            dcc.Loading(
+                dcc.Graph(
+                    id='example-graph',
+                    figure=make_figure("ファッション"),
+                    config=dict(
+                        displayModeBar=False,
+                    )
+                ),
+                id="loading"
+            ),
+            md=8),
         dbc.Col(link_card, md=4)
     ], align="center"),
     dcc.Dropdown(
