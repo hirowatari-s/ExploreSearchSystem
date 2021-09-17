@@ -70,9 +70,9 @@ def make_figure(keyword, model_name="SOM"):
         X=X,
         Z=Z,
         sigma=mm.history['sigma'][-1],
-        labels=labels, resolution=400, title_text="dammy"
+        labels=labels, resolution=100, title_text="dammy"
     )
-    U_matrix, _, _ = umatrix.calc_umatrix()
+    U_matrix, u_resolution, _ = umatrix.calc_umatrix()
 
     # decomposed by Topic
     n_components = 5
@@ -89,11 +89,6 @@ def make_figure(keyword, model_name="SOM"):
         # mask_std[i, max_k] = 1 / k_max[max_k]
     W_mask_std = W * mask_std
     alpha = 0.1
-    DEFAULT_PLOTLY_COLORS_alpha =['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
-                       'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
-                       'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
-                       'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
-                       'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
     DEFAULT_PLOTLY_COLORS=['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
                        'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
                        'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
@@ -118,27 +113,27 @@ def make_figure(keyword, model_name="SOM"):
             showlegend=False,
         ),
     )
-    # for i in range(n_components):
-    #     fig.add_trace(
-    #         go.Contour(
-    #             x=np.linspace(-1, 1, resolution),
-    #             y=np.linspace(-1, 1, resolution),
-    #             z=W_mask_std[:, i].reshape(resolution, resolution),
-    #             name='contour',
-    #             colorscale=[ 
-    #             [0, "rgba(0, 0, 0,0)"],
-    #             [1.0, DPC_with_Alpha[i]]],
-    #         )
-    #     )
-    fig.add_trace(
-        go.Contour(
-            x=np.linspace(-1, 1, resolution),
-            y=np.linspace(-1, 1, resolution),
-            z=U_matrix.reshape(resolution, resolution),
-            name='contour',
-            colorscale="viridis",
+    for i in range(n_components):
+        fig.add_trace(
+            go.Contour(
+                x=np.linspace(-1, 1, resolution),
+                y=np.linspace(-1, 1, resolution),
+                z=W_mask_std[:, i].reshape(resolution, resolution),
+                name='contour',
+                colorscale=[ 
+                [0, "rgba(0, 0, 0,0)"],
+                [1.0, DPC_with_Alpha[i]]],
+            )
         )
-    )
+    # fig.add_trace(
+    #     go.Contour(
+    #         x=np.linspace(-1, 1, u_resolution),
+    #         y=np.linspace(-1, 1, u_resolution),
+    #         z=U_matrix.reshape(u_resolution, u_resolution),
+    #         name='contour',
+    #         colorscale="viridis",
+    #     )
+    # )
     fig.add_trace(
         go.Scatter(
             x=Z[:, 0],
