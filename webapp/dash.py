@@ -77,16 +77,18 @@ def make_figure(keyword, model_name):
     # Build figure
     fig = go.Figure(
         layout=go.Layout(
-            xaxis={
-                'range': [Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
-                'visible': False
-            },
-            yaxis={
-                'range': [Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
-                'visible': False,
-                'scaleanchor': 'x',
-                'scaleratio': 1.0
-            },
+            xaxis=dict(
+                range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
+                visible=False,
+                autorange=True,
+            ),
+            yaxis=dict(
+                range=[Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
+                visible=False,
+                scaleanchor='x',
+                scaleratio=1.0,
+                autorange=True,
+            ),
             showlegend=False,
         ),
     )
