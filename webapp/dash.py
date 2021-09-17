@@ -25,7 +25,7 @@ def make_figure(keyword):
 
     # Learn model
     nb_epoch = 50
-    resolution = 10
+    resolution = 100
     sigma_max = 2.2
     sigma_min = 0.3
     tau = 50
