@@ -22,6 +22,7 @@ import pathlib
 from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
 from urllib.parse import urlparse
+import tldextract
 
 
 PROJECT_ROOT = pathlib.Path('.')
@@ -134,12 +135,12 @@ def make_figure(keyword, model_name, enable_favicon=False):
     if enable_favicon:
         for i, z in enumerate(Z):
             url = csv_df['URL'][i]
-            parser = urlparse(url)
-            if not parser.netloc in domain_favicon_map:
+            parser = tldextract.extract(url)
+            if not parser.domain in domain_favicon_map:
                 favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
                 res = requests.get(favicon_url)
-                domain_favicon_map[parser.netloc] = Image.open(io.BytesIO(res.content))
-            logo_img = domain_favicon_map[parser.netloc]
+                domain_favicon_map[parser.domain] = Image.open(io.BytesIO(res.content))
+            logo_img = domain_favicon_map[parser.domain]
             print("fetch:", url)
             fig.add_layout_image(
                     x=z[0],
