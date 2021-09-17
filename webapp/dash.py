@@ -17,6 +17,7 @@ from som import ManifoldModeling as MM
 import pathlib
 from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
+from sklearn.decomposition import NMF
 
 
 PROJECT_ROOT = pathlib.Path('.')
@@ -25,7 +26,7 @@ SAMPLE_DATASETS = [
 ]
 
 
-def make_figure(keyword, model_name):
+def make_figure(keyword, model_name="SOM"):
     # Load data
     if keyword in SAMPLE_DATASETS:
         csv_df = pd.read_csv(keyword+".csv")
@@ -39,7 +40,6 @@ def make_figure(keyword, model_name):
         label_file = 'data/tmp/'+keyword+'_label.npy'
         np.save(feature_file, X)
         np.save(label_file, labels)
-
 
     # Learn model
     nb_epoch = 50
@@ -65,14 +65,42 @@ def make_figure(keyword, model_name):
     print("Learning finished.")
     Z = mm.history['z'][-1]
 
-    # Make U-Matrix
+    # Make Visualize
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
         sigma=mm.history['sigma'][-1],
-        labels=labels, resolution=100, title_text="dammy"
+        labels=labels, resolution=400, title_text="dammy"
     )
-    U_matrix, resolution, _ = umatrix.calc_umatrix()
+    U_matrix, _, _ = umatrix.calc_umatrix()
+
+    # decomposed by Topic
+    n_components = 5
+    model_t3 = NMF(n_components=n_components, init='random', random_state=2, max_iter=300,
+                           solver='cd')
+    Y =  mm.history['y'][-1, :, :]
+    W = model_t3.fit_transform(Y)
+    # For mask and normalization(min:0, max->1)
+    mask_std = np.zeros(W.shape)
+    mask = np.argmax(W, axis=1)
+    k_max = np.max(W, axis=0)
+    for i, max_k in enumerate(mask):
+        mask_std[i, max_k] = 1 / np.max(W)
+        # mask_std[i, max_k] = 1 / k_max[max_k]
+    W_mask_std = W * mask_std
+    alpha = 0.1
+    DEFAULT_PLOTLY_COLORS_alpha =['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
+                       'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
+                       'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
+                       'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
+                       'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
+    DEFAULT_PLOTLY_COLORS=['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
+                       'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
+                       'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
+                       'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
+                       'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
+    alpha = 0.1
+    DPC_with_Alpha = [k[:-1]+', '+str(alpha)+k[-1:] for k in DEFAULT_PLOTLY_COLORS]
 
     # Build figure
     fig = go.Figure(
@@ -90,6 +118,18 @@ def make_figure(keyword, model_name):
             showlegend=False,
         ),
     )
+    # for i in range(n_components):
+    #     fig.add_trace(
+    #         go.Contour(
+    #             x=np.linspace(-1, 1, resolution),
+    #             y=np.linspace(-1, 1, resolution),
+    #             z=W_mask_std[:, i].reshape(resolution, resolution),
+    #             name='contour',
+    #             colorscale=[ 
+    #             [0, "rgba(0, 0, 0,0)"],
+    #             [1.0, DPC_with_Alpha[i]]],
+    #         )
+    #     )
     fig.add_trace(
         go.Contour(
             x=np.linspace(-1, 1, resolution),

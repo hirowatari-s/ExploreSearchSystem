@@ -8,7 +8,7 @@ import japanize_matplotlib
 
 
 class Grad_Norm:
-    def __init__(self, X=None, Z=None, sigma=None, resolution=None,
+    def __init__(self, X=None, Z=None, Y=None, sigma=None, resolution=None,
                  labels=None, fig_size=[6, 6], title_text='Grad_norm', cmap_type='jet',
                  interpolation_method='spline36', repeat=False, interval=5):
         # インプットが無効だった時のエラー処理
