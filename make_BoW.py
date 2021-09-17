@@ -37,54 +37,56 @@ def download_stopwords(path):
         print('Downloading...')
         # Download the file from `url` and save it locally under `file_name`:
         urllib.request.urlretrieve(url, path)
+
 def create_stopwords(file_path):
     stop_words = []
-    for w in open(path, "r"):
+    for w in open(file_path, "r"):
         w = w.replace('\n','')
         if len(w) > 0:
           stop_words.append(w)
     return stop_words
 
-# Load file
-keyword = "機械学習"
-filename = keyword + '.csv'
-df = pd.read_csv(filename)
 
-# Drop Miss Data
-cb1 = (df['snnipet'] == 'キャッシュ' )
-cb2 = (df['snnipet'] == '類似ページ' )
-condition_bool = (cb1 | cb2)
-df.drop(df[ condition_bool == True ].index, inplace=True)
+def make_bow(keyword):
+    # Load file
+    df = pd.read_csv(keyword + '.csv')
 
-# Get out Noise
-df["target"] = df['snnipet'].apply(wakati)
-# 半角統一
-df["target"] = df["target"].apply(mojimoji.zen_to_han)
-df["target"] = df["target"].apply(normalize_number)
-# stop word
-path = "stop_words.txt"
-download_stopwords(path)
-stop_words = create_stopwords(path)
+    # Drop Miss Data
+    cb1 = (df['snippet'] == 'キャッシュ' )
+    cb2 = (df['snippet'] == '類似ページ' )
+    condition_bool = (cb1 | cb2)
+    df.drop(df[ condition_bool == True ].index, inplace=True)
 
-# Execute
-cv = CountVectorizer(stop_words=stop_words, token_pattern=u'(?u)\\b\\w+\\b', max_df=50, min_df=3)
-feature_sparse = cv.fit_transform(df["target"])
-# Tfidf
-tfidf_transformer = TfidfTransformer(norm='l2', sublinear_tf=True)
-tfidf = tfidf_transformer.fit_transform(feature_sparse)
+    # Get out Noise
+    df["target"] = df['snippet'].apply(wakati)
+    # 半角統一
+    df["target"] = df["target"].apply(mojimoji.zen_to_han)
+    df["target"] = df["target"].apply(normalize_number)
+    # stop word
+    path = "stop_words.txt"
+    download_stopwords(path)
+    stop_words = create_stopwords(path)
+
+    # Execute
+    cv = CountVectorizer(stop_words=stop_words, token_pattern=u'(?u)\\b\\w+\\b', max_df=50, min_df=3)
+    feature_sparse = cv.fit_transform(df["target"])
+    # Tfidf
+    tfidf_transformer = TfidfTransformer(norm='l2', sublinear_tf=True)
+    tfidf = tfidf_transformer.fit_transform(feature_sparse)
 
 
-features = np.array(tfidf.todense())
-print(features)
-feature_file = 'data/tmp/'+keyword+'.npy'
-label_file = 'data/tmp/'+keyword+'_label.npy'
-np.save(feature_file, features)
-np.save(label_file, df['site_name'].tolist())
-df.to_csv(filename)
-# np.save(label_file, cv.get_feature_names())
+    features = np.array(tfidf.todense())
+    labels = df['site_name'].tolist()
+    return features, labels, df
 
-# print("(文章数, 単語数)=", features.shape)
-# A=np.argsort(np.sum(features, axis=0))[::-1]
-# print("単語, tfidf値")
-# for i in A:
-#     print(cv.get_feature_names()[i], np.sum(features, axis=0)[i])
+
+if __name__ == '__main__':
+    keyword = "ペット"
+    features, labels, df = make_bow(keyword)
+
+    print(features)
+    feature_file = 'data/tmp/'+keyword+'.npy'
+    label_file = 'data/tmp/'+keyword+'_label.npy'
+    np.save(feature_file, features)
+    np.save(label_file, labels)
+    df.to_csv(keyword + '.csv')
