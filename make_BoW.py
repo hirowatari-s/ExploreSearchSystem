@@ -46,7 +46,7 @@ def create_stopwords(file_path):
     return stop_words    
 
 # Load file
-keyword = "ファッション"
+keyword = "あっぷる"
 filename = keyword + '.csv'
 df = pd.read_csv(filename)
 
@@ -76,10 +76,11 @@ tfidf = tfidf_transformer.fit_transform(feature_sparse)
 
 features = np.array(tfidf.todense())
 print(features)
+print(features.shape)
 feature_file = 'data/tmp/'+keyword+'.npy'
 label_file = 'data/tmp/'+keyword+'_label.npy'
-np.save(feature_file, features)
-np.save(label_file, df['site_name'].tolist())
+# np.save(feature_file, features)
+# np.save(label_file, df['site_name'].tolist())
 # np.save(label_file, cv.get_feature_names())
 
 # print("(文章数, 単語数)=", features.shape)
