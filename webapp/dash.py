@@ -9,12 +9,18 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
-import plotly.express as px
 import pandas as pd
 import numpy as np
 from webapp import app
 from dev.Grad_norm import Grad_Norm
 from fit import SOM
+import pathlib
+
+
+PROJECT_ROOT = pathlib.Path('.')
+SAMPLE_DATASETS = [
+    csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
+]
 
 
 def make_figure(keyword):
@@ -208,9 +214,7 @@ app.layout = dbc.Container(children=[
     dcc.Dropdown(
         id='dropdown',
         options=[
-            {'label': 'ファッション', 'value': 'ファッション'},
-            {'label': '機械学習', 'value': '機械学習'},
-            {'label': 'あっぷる', 'value': 'あっぷる'}
+            {'label': name, 'value': name} for name in SAMPLE_DATASETS
         ],
         value='ファッション'
     ),
