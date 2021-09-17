@@ -9,19 +9,37 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
-import plotly.express as px
 import pandas as pd
 import numpy as np
 from webapp import app
 from dev.Grad_norm import Grad_Norm
 from fit import SOM
+import pathlib
+from scraperbox import fetch_gsearch_result
+from make_BoW import make_bow
+
+
+PROJECT_ROOT = pathlib.Path('.')
+SAMPLE_DATASETS = [
+    csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
+]
 
 
 def make_figure(keyword):
     # Load data
-    csv_df = pd.read_csv(keyword+".csv")
-    labels = csv_df['site_name']
-    X = np.load("data/tmp/" + keyword + ".npy")
+    if keyword in SAMPLE_DATASETS:
+        csv_df = pd.read_csv(keyword+".csv")
+        labels = csv_df['site_name']
+        X = np.load("data/tmp/" + keyword + ".npy")
+    else:
+        df = fetch_gsearch_result(keyword)
+        X , labels, df = make_bow(df)
+        df.to_csv(keyword+".csv")
+        feature_file = 'data/tmp/'+keyword+'.npy'
+        label_file = 'data/tmp/'+keyword+'_label.npy'
+        np.save(feature_file, X)
+        np.save(label_file, labels)
+
 
     # Learn model
     nb_epoch = 50
@@ -119,11 +137,37 @@ def make_figure(keyword):
 # fig.update_layout(legend_title_text='Trend')
 
 
+def make_search_form(style):
+    form_id = 'search-form'
+    if style == 'selection':
+        return dcc.Dropdown(
+            id=form_id,
+            options=[
+                {'label': name, 'value': name} for name in SAMPLE_DATASETS
+            ],
+            value='ファッション'
+        )
+    else:
+        return dcc.Input(
+            id=form_id,
+            type="text",
+            placeholder="検索ワードを入力してください",
+        )
+
+
 @app.callback(
     Output('example-graph', 'figure'),
-    Input('dropdown', 'value'))
-def load_learning(value):
-    return make_figure(value)
+    Input('explore-start', 'n_clicks'),
+    State('search-form', 'value'))
+def load_learning(n_clicks, keyword):
+    return make_figure(keyword)
+
+
+@app.callback(
+    Output('search-form-div', 'children'),
+    Input('search-style-selector', 'value'))
+def search_form_callback(style):
+    return make_search_form(style)
 
 
 @app.callback([
@@ -137,14 +181,13 @@ def load_learning(value):
         Input('example-graph', 'hoverData'),
     ],
     [
-        State('dropdown', 'value'),
+        State('search-form', 'value'),
         State('link', 'children'),
         State('link', 'href'),
         State('link', 'target'),
         State('card-text', 'children'),
     ])
 def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title):
-    print(hoverData)
     if hoverData:
         if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]):
             link_title = prev_linktext
@@ -156,7 +199,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             index = hoverData['points'][0]['pointIndex']
             link_title = "サイトへ Go"
             labels = csv_df['site_name']
-            url = csv_df['URL'][index][12:-2]
+            url = csv_df['URL'][index]
             target = "_blank"
             page_title = labels[index]
             # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
@@ -196,22 +239,30 @@ app.layout = dbc.Container(children=[
 
     dbc.Row([
         dbc.Col(
-            dcc.Graph(
-                id='example-graph',
-                figure=make_figure("ファッション"),
-                config=dict(
-                    displayModeBar=False,
-                )
-        ), md=8),
+            dcc.Loading(
+                dcc.Graph(
+                    id='example-graph',
+                    figure=make_figure("ファッション"),
+                    config=dict(
+                        displayModeBar=False,
+                    )
+                ),
+                id="loading"
+            ),
+            md=8),
         dbc.Col(link_card, md=4)
     ], align="center"),
-    dcc.Dropdown(
-        id='dropdown',
+    dbc.RadioItems(
         options=[
-            {'label': 'ファッション', 'value': 'ファッション'},
-            {'label': '機械学習', 'value': '機械学習'},
-            {'label': 'あっぷる', 'value': 'あっぷる'}
+            {'label': 'サンプルのデータセット', 'value': 'selection'},
+            {'label': '自由に検索', 'value': 'freedom'},
         ],
-        value='ファッション'
+        value='selection',
+        id="search-style-selector",
     ),
+    html.Div(
+        id='search-form-div',
+        children=make_search_form('selection'),
+    ),
+    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0)
 ])
