@@ -97,7 +97,8 @@ def make_figure(keyword, model_name):
             z=U_matrix.reshape(resolution, resolution),
             name='contour',
             colorscale="viridis",
-        )
+            hoverinfo='skip',
+        ),
     )
     fig.add_trace(
         go.Scatter(
@@ -108,7 +109,10 @@ def make_figure(keyword, model_name):
             marker=dict(
                 size=13,
             ),
-            text=labels
+            text=labels,
+            hoverlabel=dict(
+                bgcolor="rgba(255, 255, 255, 0.75)",
+            ),
         )
     )
     fig.update_coloraxes(
