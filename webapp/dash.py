@@ -15,6 +15,8 @@ from webapp import app
 from dev.Grad_norm import Grad_Norm
 from fit import SOM
 import pathlib
+from scraperbox import fetch_gsearch_result
+from make_BoW import make_bow
 
 
 PROJECT_ROOT = pathlib.Path('.')
@@ -25,9 +27,15 @@ SAMPLE_DATASETS = [
 
 def make_figure(keyword):
     # Load data
-    csv_df = pd.read_csv(keyword+".csv")
-    labels = csv_df['site_name']
-    X = np.load("data/tmp/" + keyword + ".npy")
+    if keyword in SAMPLE_DATASETS:
+        csv_df = pd.read_csv(keyword+".csv")
+        labels = csv_df['site_name']
+        X = np.load("data/tmp/" + keyword + ".npy")
+    else:
+        df = fetch_gsearch_result(keyword)
+        df.to_csv(keyword+".csv")
+        X , labels, df = make_bow(df)
+
 
     # Learn model
     nb_epoch = 50
