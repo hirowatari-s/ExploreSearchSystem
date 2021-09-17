@@ -16,7 +16,8 @@ from fit import SOM
 
 
 def make_figure(keyword):
-    labels = np.load("data/tmp/"+keyword+"_label.npy")
+    csv_df = pd.read_csv(keyword+".csv")
+    labels = csv_df['site_name']
     feature_file = 'data/tmp/'+keyword+'.npy'
     X = np.load(feature_file)
 
@@ -44,7 +45,7 @@ def make_figure(keyword):
     Z = som.history['z'][-1]
 
     # 検索結果順に色つけるやつ
-    color = Z[:, 0]
+    color = np.arange(Z[:, 0].shape[0])
     df_demo = pd.DataFrame({
         "x": Z[:, 0],
         "y": Z[:, 1],
@@ -77,7 +78,6 @@ def make_figure(keyword):
 def update_title(hoverData, keyword):
     # print(hoverData)
     if hoverData:
-        labels = np.load("data/tmp/"+keyword+"_label.npy")
         csv_df = pd.read_csv(keyword+".csv")
         # print("df:", csv_df)
         # print("labels:", labels)
@@ -85,7 +85,10 @@ def update_title(hoverData, keyword):
         # print(csv_df['URL'][index][12:-2])
 
         link_title = "サイトへ Go"
+        labels = csv_df['site_name']
         url = csv_df['URL'][index][12:-2]
+        print(csv_df["URL"])
+        print(index, url)
         target = "_blank"
         page_title = labels[index]
         # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
