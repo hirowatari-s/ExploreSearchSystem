@@ -2,7 +2,7 @@ import urllib.request
 from urllib.parse import urlparse
 import csv
 
-keyword = "ファッション"
+keyword = "機械学習"
 url = 'https://google.com/search?q='+ keyword +'&filter=0&num=100'
 
 # Perform the request
@@ -54,6 +54,6 @@ with open(filename, 'w', newline='') as outcsv:
         results = div.select("a")
         if (len(results) >= 1):
             url_text = results[0].get('href')
-        
-        csvwriter.writerow([keyword, site_name, snnipet, '=HYPERLINK("' + url_text + '")', str(i+1)])
+
+        csvwriter.writerow([keyword, site_name, snnipet, url_text, str(i+1)])
     outcsv.close()

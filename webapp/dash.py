@@ -156,7 +156,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             index = hoverData['points'][0]['pointIndex']
             link_title = "サイトへ Go"
             labels = csv_df['site_name']
-            url = csv_df['URL'][index][12:-2]
+            url = csv_df['URL'][index]
             target = "_blank"
             page_title = labels[index]
             # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
