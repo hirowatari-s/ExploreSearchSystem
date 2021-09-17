@@ -30,7 +30,7 @@ SAMPLE_DATASETS = [
 ]
 
 
-def make_figure(keyword, model_name):
+def make_figure(keyword, model_name, enable_favicon=False):
     # Load data
     if keyword in SAMPLE_DATASETS:
         csv_df = pd.read_csv(keyword+".csv")
@@ -130,29 +130,30 @@ def make_figure(keyword, model_name):
         )
     )
 
-    domain_favicon_map = dict()
-    for i, z in enumerate(Z):
-        url = csv_df['URL'][i]
-        parser = urlparse(url)
-        if not parser.netloc in domain_favicon_map:
-            favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
-            res = requests.get(favicon_url)
-            domain_favicon_map[parser.netloc] = Image.open(io.BytesIO(res.content))
-        logo_img = domain_favicon_map[parser.netloc]
-        print("fetch:", url)
-        fig.add_layout_image(
-                x=z[0],
-                sizex=0.1,
-                y=z[1],
-                sizey=0.1,
-                xref="x",
-                yref="y",
-                opacity=0.5,
-                xanchor="center",
-                yanchor="middle",
-                layer="above",
-                source=logo_img
-        )
+    if enable_favicon:
+        domain_favicon_map = dict()
+        for i, z in enumerate(Z):
+            url = csv_df['URL'][i]
+            parser = urlparse(url)
+            if not parser.netloc in domain_favicon_map:
+                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+                res = requests.get(favicon_url)
+                domain_favicon_map[parser.netloc] = Image.open(io.BytesIO(res.content))
+            logo_img = domain_favicon_map[parser.netloc]
+            print("fetch:", url)
+            fig.add_layout_image(
+                    x=z[0],
+                    sizex=0.1,
+                    y=z[1],
+                    sizey=0.1,
+                    xref="x",
+                    yref="y",
+                    opacity=0.5,
+                    xanchor="center",
+                    yanchor="middle",
+                    layer="above",
+                    source=logo_img
+            )
     fig.update_coloraxes(
         showscale=False
     )
@@ -193,10 +194,13 @@ def make_search_form(style):
 @app.callback(
     Output('example-graph', 'figure'),
     Input('explore-start', 'n_clicks'),
-    State('search-form', 'value'),
-    State('model-selector', 'value'))
-def load_learning(n_clicks, keyword, model_name):
-    return make_figure(keyword, model_name)
+    [
+        State('search-form', 'value'),
+        State('model-selector', 'value'),
+        State('favicon-enabled', 'checked'),
+    ])
+def load_learning(n_clicks, keyword, model_name, favicon):
+    return make_figure(keyword, model_name, favicon)
 
 
 @app.callback(
@@ -308,6 +312,18 @@ app.layout = dbc.Container(children=[
             id="model-selector",
             style={'textAlign': "center"}
         ),
+        dbc.FormGroup([
+            dbc.Checkbox(
+                id="favicon-enabled",
+                children="ファビコンを表示する",
+                checked=False,
+            ),
+            dbc.Label(
+                "ロゴを表示する",
+                html_for="favicon-enabled",
+                className="form-check-label",
+            ),
+        ], check=True),
     dbc.RadioItems(
         options=[
             {'label': 'サンプルのデータセット', 'value': 'selection'},
