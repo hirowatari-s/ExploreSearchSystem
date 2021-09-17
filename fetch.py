@@ -33,7 +33,7 @@ filename = keyword + '.csv'
 
 with open(filename, 'w', newline='') as outcsv:
     csvwriter = csv.writer(outcsv)
-    csvwriter.writerow(['keyword', 'site_name','snnipet',  'URL', 'ranking'])
+    csvwriter.writerow(['keyword', 'site_name','snippet',  'URL', 'ranking'])
 
     # Find all the search result divs
 
@@ -48,12 +48,12 @@ with open(filename, 'w', newline='') as outcsv:
         # Search for a span tag
         results = div.select("span")
         if (len(results) >= 1):
-            # Print the snnipet
-            snnipet = results[-1].get_text()
+            # Print the snippet
+            snippet = results[-1].get_text()
 
         results = div.select("a")
         if (len(results) >= 1):
             url_text = results[0].get('href')
 
-        csvwriter.writerow([keyword, site_name, snnipet, url_text, str(i+1)])
+        csvwriter.writerow([keyword, site_name, snippet, url_text, str(i+1)])
     outcsv.close()
