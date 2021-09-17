@@ -21,6 +21,7 @@ def make_figure(keyword):
     # Load data
     csv_df = pd.read_csv(keyword+".csv")
     labels = csv_df['site_name']
+    rank = csv_df['ranking']
     X = np.load("data/tmp/" + keyword + ".npy")
 
     # Learn model
@@ -78,7 +79,7 @@ def make_figure(keyword):
             y=np.linspace(-1, 1, resolution),
             z=U_matrix.reshape(resolution, resolution),
             name='contour',
-            colorscale="viridis",
+            colorscale="rdbu",
         )
     )
     fig.add_trace(
@@ -88,7 +89,10 @@ def make_figure(keyword):
             mode="markers",
             name='lv',
             marker=dict(
-                size=13,
+                size=rank[::-1],
+                sizemode='area',
+                sizeref=2. * max(rank) / (40. ** 2),
+                sizemin=4,
                 # line=dict(
                 #     width=1.5,
                 #     color="white"
@@ -131,6 +135,7 @@ def load_learning(value):
         Output('link', 'href'),
         Output('link', 'target'),
         Output('card-text', 'children'),
+        Output('snippet-text', 'children'),
         # Output('card-img', 'src'),
     ],
     [
@@ -142,8 +147,9 @@ def load_learning(value):
         State('link', 'href'),
         State('link', 'target'),
         State('card-text', 'children'),
+        State('snippet-text', 'children')
     ])
-def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title):
+def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title, prev_snippet):
     print(hoverData)
     if hoverData:
         if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]):
@@ -151,6 +157,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             url = prev_url
             target = prev_target
             page_title = prev_page_title
+            snippet = prev_snippet
         else:
             csv_df = pd.read_csv(keyword+".csv")
             index = hoverData['points'][0]['pointIndex']
@@ -159,14 +166,16 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             url = csv_df['URL'][index][12:-2]
             target = "_blank"
             page_title = labels[index]
+            snippet = csv_df['snnipet'][index]
             # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
     else:
         link_title = "マウスを当ててみよう"
         url = "#"
         target = "_self"
         page_title = ""
+        snippet = ""
         # favicon_url = "https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png"
-    return link_title, url, target, page_title #, favicon_url
+    return link_title, url, target, page_title, snippet #, favicon_url
 
 
 link_card = dbc.Card([
@@ -178,6 +187,7 @@ link_card = dbc.Card([
     #     style="height: 50px; width: 50px;",
     # ),
     html.P("", id="card-text", className="h4"),
+    html.P("", id="snippet-text", className="h5"),
     html.A(
         id='link',
         href='#',
@@ -188,11 +198,21 @@ link_card = dbc.Card([
 ], id="link-card")
 
 app.layout = dbc.Container(children=[
-    html.H1(id='title', children='Hello Dash'),
+    html.H1(id='title', children='情報探索エンジン'),
     html.Div(children='''
-        Dash: A web application framework for Python.
+        情報探索を行うツールです．
     '''),
     html.Hr(),
+
+    dcc.Dropdown(
+        id='dropdown',
+        options=[
+            {'label': 'ファッション', 'value': 'ファッション'},
+            {'label': '機械学習', 'value': '機械学習'},
+            {'label': 'あっぷる', 'value': 'あっぷる'}
+        ],
+        value='ファッション'
+    ),
 
     dbc.Row([
         dbc.Col(
@@ -205,13 +225,4 @@ app.layout = dbc.Container(children=[
         ), md=8),
         dbc.Col(link_card, md=4)
     ], align="center"),
-    dcc.Dropdown(
-        id='dropdown',
-        options=[
-            {'label': 'ファッション', 'value': 'ファッション'},
-            {'label': '機械学習', 'value': '機械学習'},
-            {'label': 'あっぷる', 'value': 'あっぷる'}
-        ],
-        value='ファッション'
-    ),
 ])
