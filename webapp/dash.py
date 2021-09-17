@@ -8,6 +8,7 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
+from dash_html_components.Div import Div
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
@@ -125,11 +126,39 @@ def make_figure(keyword):
 # fig.update_layout(legend_title_text='Trend')
 
 
+def make_search_form(style):
+    form_id = 'search-form'
+    if style == 'selection':
+        return dcc.Dropdown(
+            id=form_id,
+            options=[
+                {'label': name, 'value': name} for name in SAMPLE_DATASETS
+            ],
+            value='ファッション'
+        )
+    else:
+        return [
+            dbc.Input(
+                id=form_id,
+                placeholder="検索ワードを入力してください",
+                type="text",
+            ),
+            dbc.Button("検索！", outline=True, id="submit", n_clicks=0)
+        ]
+
+
 @app.callback(
     Output('example-graph', 'figure'),
-    Input('dropdown', 'value'))
-def load_learning(value):
-    return make_figure(value)
+    Input('search-form', 'value'))
+def load_learning(keyword):
+    return make_figure(keyword)
+
+
+@app.callback(
+    Output('search-form-div', 'children'),
+    Input('search-style-selector', 'value'))
+def search_form_callback(style):
+    return make_search_form(style)
 
 
 @app.callback([
@@ -143,7 +172,7 @@ def load_learning(value):
         Input('example-graph', 'hoverData'),
     ],
     [
-        State('dropdown', 'value'),
+        State('search-form', 'value'),
         State('link', 'children'),
         State('link', 'href'),
         State('link', 'target'),
@@ -215,11 +244,16 @@ app.layout = dbc.Container(children=[
             md=8),
         dbc.Col(link_card, md=4)
     ], align="center"),
-    dcc.Dropdown(
-        id='dropdown',
+    dbc.RadioItems(
         options=[
-            {'label': name, 'value': name} for name in SAMPLE_DATASETS
+            {'label': 'サンプルのデータセット', 'value': 'selection'},
+            {'label': '自由に検索', 'value': 'freedom'},
         ],
-        value='ファッション'
+        value='selection',
+        id="search-style-selector",
     ),
+    html.Div(
+        id='search-form-div',
+        children=make_search_form('selection')
+    )
 ])
