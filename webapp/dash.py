@@ -4,6 +4,7 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
+from urllib import parse
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -12,11 +13,15 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from webapp import app
+import requests
+import io
+from PIL import Image
 from Grad_norm import Grad_Norm
 from som import ManifoldModeling as MM
 import pathlib
 from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
+from urllib.parse import urlparse
 
 
 PROJECT_ROOT = pathlib.Path('.')
@@ -124,6 +129,30 @@ def make_figure(keyword, model_name):
             ),
         )
     )
+
+    domain_favicon_map = dict()
+    for i, z in enumerate(Z):
+        url = csv_df['URL'][i]
+        parser = urlparse(url)
+        if not parser.netloc in domain_favicon_map:
+            favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+            res = requests.get(favicon_url)
+            domain_favicon_map[parser.netloc] = Image.open(io.BytesIO(res.content))
+        logo_img = domain_favicon_map[parser.netloc]
+        print("fetch:", url)
+        fig.add_layout_image(
+                x=z[0],
+                sizex=0.1,
+                y=z[1],
+                sizey=0.1,
+                xref="x",
+                yref="y",
+                opacity=0.5,
+                xanchor="center",
+                yanchor="middle",
+                layer="above",
+                source=logo_img
+        )
     fig.update_coloraxes(
         showscale=False
     )
