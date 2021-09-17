@@ -4,7 +4,7 @@ from scipy.spatial import distance as dist
 from sklearn.decomposition import PCA
 
 
-class SOM:
+class ManifoldModeling:
     def __init__(self, X, latent_dim, resolution, sigma_max, sigma_min, tau, init='random', metric="sqeuclidean"):
         self.X = X
         self.N = self.X.shape[0]
@@ -78,20 +78,34 @@ class SOM:
         self.Y = R @ self.X  # 学習量を重みとして観測データの平均を取り参照ベクトルとする
 
     def _competitive_process(self):
-        if self.metric is "sqeuclidean":  # ユークリッド距離を使った勝者決定
+        if self.metric == "sqeuclidean":  # ユークリッド距離を使った勝者決定
             # 勝者ノードの計算H
             Dist = dist.cdist(self.X, self.Y)  # NxKの距離行列を計算
             self.bmus = Dist.argmin(axis=1)
             # Nx1の勝者ノード番号をまとめた列ベクトルを計算
             # argmin(axis=1)を用いて各行で最小値を探しそのインデックスを返す
             self.Z = self.Zeta[self.bmus, :]  # 勝者ノード番号から勝者ノードを求める
-        elif self.metric is "KLdivergence":  # KL情報量を使った勝者決定
+        elif self.metric == "KLdivergence":  # KL情報量を使った勝者決定
             Dist = np.sum(self.X[:, np.newaxis, :] * np.log(self.Y)[np.newaxis, :, :], axis=2)  # N*K行列
             # 勝者番号の決定
             self.bmus = np.argmax(Dist, axis=1)
             # Nx1の勝者ノード番号をまとめた列ベクトルを計算
             # argmin(axis=1)を用いて各行で最小値を探しそのインデックスを返す
             self.Z = self.Zeta[self.bmus, :]  # 勝者ノード番号から勝者ノードを求める
+
+    def _ukr_process(self, sigma, alpha=5.1):
+        ZZ = self.Z[:, None, :] - self.Z[None, :, :]
+        D = np.sum(np.square(ZZ), axis=2)
+        H = np.exp((-0.5/sigma**2) * D)
+        G = np.sum(H, axis=1, keepdims=True)
+        R = H / G
+        Y = R @ self.X
+
+        Dyx = Y[:, None, :] - self.X[None, :, :]
+        A = R * np.einsum("nd,nid->ni", Y - self.X, Dyx)
+        grad = np.einsum("ni,nid->nd", A + A.T, ZZ)
+        self.Z = np.clip(self.Z - alpha * grad, -1, 1)
+        # self.Z = self.Z - alpha * grad
 
     def update_mapping(self, Y):
         self.Y = Y
@@ -102,10 +116,19 @@ class SOM:
         self.history['y'] = np.zeros((nb_epoch, self.K, self.D))
         self.history['sigma'] = np.zeros(nb_epoch)
 
+        ukr_learn = nb_epoch - self.tau
         for epoch in range(nb_epoch):
+            # 47 < 48
+            # self._cooperative_process(epoch)   # 協調過程
+            # self._adaptive_process()           # 適合過程
+            # self._competitive_process()        # 競合過程
+            # 48, 49, 50
+            # elif epoch == self.tau:
+                # self.Z = self.Z*1/10
+
+            self._ukr_process(np.sqrt(1/self.N*np.pi))
             self._cooperative_process(epoch)   # 協調過程
             self._adaptive_process()           # 適合過程
-            self._competitive_process()        # 競合過程
 
             self.history['z'][epoch] = self.Z
             self.history['y'][epoch] = self.Y

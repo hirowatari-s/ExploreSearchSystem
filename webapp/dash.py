@@ -13,8 +13,8 @@ import plotly.express as px
 import pandas as pd
 import numpy as np
 from webapp import app
-from dev.Grad_norm import Grad_Norm
-from fit import SOM
+from Grad_norm import Grad_Norm
+from som import ManifoldModeling as MM
 
 
 def make_figure(keyword):
@@ -33,7 +33,7 @@ def make_figure(keyword):
     seed = 1
 
     np.random.seed(seed)
-    som = SOM(
+    mm = MM(
         X,
         latent_dim=latent_dim,
         resolution=resolution,
@@ -42,15 +42,15 @@ def make_figure(keyword):
         tau=tau,
         init='PCA'
     )
-    som.fit(nb_epoch=nb_epoch)
+    mm.fit(nb_epoch=nb_epoch)
     print("Learning finished.")
-    Z = som.history['z'][-1]
+    Z = mm.history['z'][-1]
 
     # Make U-Matrix
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
-        sigma=som.history['sigma'][-1],
+        sigma=mm.history['sigma'][-1],
         labels=labels, resolution=100, title_text="dammy"
     )
     U_matrix, resolution, _ = umatrix.calc_umatrix()
