@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA
 
 
 class ManifoldModeling:
-    def __init__(self, X, latent_dim, resolution, sigma_max, sigma_min, tau, init='random', metric="sqeuclidean"):
+    def __init__(self, X, latent_dim, resolution, sigma_max, sigma_min, tau, model_name, init='random', metric="sqeuclidean"):
         self.X = X
         self.N = self.X.shape[0]
 
@@ -15,6 +15,8 @@ class ManifoldModeling:
 
         self.D = X.shape[1]
         self.L = latent_dim
+
+        self.model_name = model_name
 
         self.history = {}
 
@@ -116,19 +118,15 @@ class ManifoldModeling:
         self.history['y'] = np.zeros((nb_epoch, self.K, self.D))
         self.history['sigma'] = np.zeros(nb_epoch)
 
-        ukr_learn = nb_epoch - self.tau
         for epoch in range(nb_epoch):
-            # 47 < 48
-            # self._cooperative_process(epoch)   # 協調過程
-            # self._adaptive_process()           # 適合過程
-            # self._competitive_process()        # 競合過程
-            # 48, 49, 50
-            # elif epoch == self.tau:
-                # self.Z = self.Z*1/10
-
-            self._ukr_process(np.sqrt(1/self.N*np.pi))
-            self._cooperative_process(epoch)   # 協調過程
-            self._adaptive_process()           # 適合過程
+            if self.model_name == 'SOM':
+                self._cooperative_process(epoch)   # 協調過程
+                self._adaptive_process()           # 適合過程
+                self._competitive_process()        # 競合過程
+            else:
+                self._ukr_process(np.sqrt(1/self.N*np.pi))
+                self._cooperative_process(epoch)   # 協調過程
+                self._adaptive_process()           # 適合過程
 
             self.history['z'][epoch] = self.Z
             self.history['y'][epoch] = self.Y
