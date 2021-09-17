@@ -8,7 +8,6 @@ from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
-from dash_html_components.Div import Div
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
@@ -137,20 +136,18 @@ def make_search_form(style):
             value='ファッション'
         )
     else:
-        return [
-            dbc.Input(
-                id=form_id,
-                placeholder="検索ワードを入力してください",
-                type="text",
-            ),
-            dbc.Button("検索！", outline=True, id="submit", n_clicks=0)
-        ]
+        return dcc.Input(
+            id=form_id,
+            type="text",
+            placeholder="検索ワードを入力してください",
+        )
 
 
 @app.callback(
     Output('example-graph', 'figure'),
-    Input('search-form', 'value'))
-def load_learning(keyword):
+    Input('explore-start', 'n_clicks'),
+    State('search-form', 'value'))
+def load_learning(n_clicks, keyword):
     return make_figure(keyword)
 
 
@@ -179,7 +176,6 @@ def search_form_callback(style):
         State('card-text', 'children'),
     ])
 def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title):
-    print(hoverData)
     if hoverData:
         if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]):
             link_title = prev_linktext
@@ -254,6 +250,7 @@ app.layout = dbc.Container(children=[
     ),
     html.Div(
         id='search-form-div',
-        children=make_search_form('selection')
-    )
+        children=make_search_form('selection'),
+    ),
+    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0)
 ])
