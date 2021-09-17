@@ -25,7 +25,7 @@ def make_figure(keyword):
 
     # Learn model
     nb_epoch = 50
-    resolution = 100
+    resolution = 20
     sigma_max = 2.2
     sigma_min = 0.3
     tau = 50
@@ -70,7 +70,7 @@ def make_figure(keyword):
             },
             showlegend=False,
             # **self.params_figure_layout
-        )
+        ),
     )
     fig.add_trace(
         go.Contour(
@@ -94,8 +94,26 @@ def make_figure(keyword):
                 #     color="white"
                 # ),
             ),
-            text=labels)
+            text=labels
         )
+    )
+    fig.update_coloraxes(
+        showscale=False
+    )
+    fig.update_layout(
+        plot_bgcolor="white",
+    )
+    fig.update(
+        layout_coloraxis_showscale=False,
+        layout_showlegend=False,
+    )
+    fig.update_yaxes(
+        fixedrange=True,
+    )
+    fig.update_xaxes(
+        fixedrange=True,
+    )
+
     return fig
 # fig.update_layout(hovermode="lv")
 # fig.update_layout(legend_title_text='Trend')
@@ -181,6 +199,9 @@ app.layout = dbc.Container(children=[
             dcc.Graph(
                 id='example-graph',
                 figure=make_figure("ファッション"),
+                config=dict(
+                    displayModeBar=False,
+                )
         ), md=8),
         dbc.Col(link_card, md=4)
     ], align="center"),
