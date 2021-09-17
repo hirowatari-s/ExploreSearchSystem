@@ -77,17 +77,25 @@ def make_figure(keyword, model_name):
     # Build figure
     fig = go.Figure(
         layout=go.Layout(
-            xaxis={
-                'range': [Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
-                'visible': False
-            },
-            yaxis={
-                'range': [Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
-                'visible': False,
-                'scaleanchor': 'x',
-                'scaleratio': 1.0
-            },
+            xaxis=dict(
+                range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
+                visible=False,
+                autorange=True,
+            ),
+            yaxis=dict(
+                range=[Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
+                visible=False,
+                scaleanchor='x',
+                scaleratio=1.0,
+                autorange=True,
+            ),
             showlegend=False,
+            margin=dict(
+                b=0,
+                t=0,
+                l=0,
+                r=0,
+            )
         ),
     )
     fig.add_trace(
@@ -97,7 +105,9 @@ def make_figure(keyword, model_name):
             z=U_matrix.reshape(resolution, resolution),
             name='contour',
             colorscale="viridis",
-        )
+            hoverinfo='skip',
+            showscale=False,
+        ),
     )
     fig.add_trace(
         go.Scatter(
@@ -108,7 +118,10 @@ def make_figure(keyword, model_name):
             marker=dict(
                 size=13,
             ),
-            text=labels
+            text=labels,
+            hoverlabel=dict(
+                bgcolor="rgba(255, 255, 255, 0.75)",
+            ),
         )
     )
     fig.update_coloraxes(
@@ -249,9 +262,14 @@ app.layout = dbc.Container(children=[
                 ),
                 id="loading"
             ),
-            md=8),
-        dbc.Col(link_card, md=4)
-    ], align="center"),
+            width=8,
+            style={"height": "100%"}),
+        dbc.Col(link_card, width=4)
+        ],
+        align="center",
+        className="h-75",
+        style={"min-height" : "70vh"},
+        no_gutters=True),
     dbc.RadioItems(
             options=[
                 {'label': 'SOM', 'value': 'SOM'},
@@ -274,4 +292,4 @@ app.layout = dbc.Container(children=[
         children=make_search_form('selection'),
     ),
     dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0)
-])
+], fluid=True)
