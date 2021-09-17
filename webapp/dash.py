@@ -206,6 +206,12 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
     return link_title, url, target, page_title #, favicon_url
 
 
+app.clientside_callback(
+    "onLatentClicked",
+    Output('explore-start', 'outline'),
+    Input('example-graph', 'clickData'))
+
+
 link_card = dbc.Card([
     # dbc.CardImg(
     #     id="card-img",
