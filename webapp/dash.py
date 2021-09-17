@@ -254,9 +254,14 @@ app.layout = dbc.Container(children=[
                 ),
                 id="loading"
             ),
-            md=8),
-        dbc.Col(link_card, md=4)
-    ], align="center"),
+            width=8,
+            style={"height": "100%"}),
+        dbc.Col(link_card, width=4)
+        ],
+        align="center",
+        className="h-75",
+        style={"min-height" : "70vh"},
+        no_gutters=True),
     dbc.RadioItems(
             options=[
                 {'label': 'SOM', 'value': 'SOM'},
@@ -279,4 +284,4 @@ app.layout = dbc.Container(children=[
         children=make_search_form('selection'),
     ),
     dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0)
-])
+], fluid=True)
