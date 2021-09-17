@@ -90,6 +90,12 @@ def make_figure(keyword, model_name):
                 autorange=True,
             ),
             showlegend=False,
+            margin=dict(
+                b=0,
+                t=0,
+                l=0,
+                r=0,
+            )
         ),
     )
     fig.add_trace(
