@@ -403,7 +403,7 @@ app.callback(
 link_card = dbc.Card([
     # html.P("", id="card-text", className="h4"),
     dbc.CardHeader("", id="card-text", className="h4"),
-    html.P("", id="snippet-text", className="h5"),
+    html.P("", id="snippet-text", className="h5",style={"min-height":"100px"}),
     html.A(
         id='link',
         href='#',
@@ -414,8 +414,9 @@ link_card = dbc.Card([
     dbc.CardFooter(
         "マップ中の丸をクリックしても該当ページへ飛べます．",
         className="font-weight-light",
-    )
-], id="link-card")
+    )],
+    id="link-card",
+)
 
 
 search_component = dbc.Col([
@@ -453,9 +454,12 @@ search_component = dbc.Col([
                 n_clicks=0,
             ),
             width=2,
-        ),
-    ], align="center")
-], style={"background-color":"blue"})
+        )],
+        align="center")],
+    style={"background-color": "blue", "min-height":"100px"},
+    md=12,
+    xl=6,
+)
 
 
 view_options = dbc.Col([
@@ -498,8 +502,11 @@ view_options = dbc.Col([
         ),
         style=dict(height="60%", width="100%"),
         align="center",
-    ),
-])
+    )],
+    md=12,
+    xl=6,
+    style={"min-height":"100px"}
+)
 
 
 result_component = dbc.Row(
@@ -513,30 +520,53 @@ result_component = dbc.Row(
                 ),
                 id="loading"
             ),
-            width=9,
-            style={"height": "100%", "background-color": "blue"}
+            style={"height": "100%", "background-color": "blue"},
+            md=12,
+            xl=9
         ),
         dbc.Col(
             link_card,
-            width=3,
-            style={"background-color": "yellow"}
+            style={"background-color": "yellow"},
+            md=12,
+            xl=3
         )
     ],
     align="center",
     className="h-75",
-    style={"min-height": "80vh", "background-color": "green"},
+    style={"min-height": "70vh", "background-color": "green"},
     no_gutters=True
 )
 
 
 app.layout = dbc.Container(children=[
     dbc.Row([
-        html.H1(id='title', children='情報探索エンジン'),
-        html.Div(children='''
-            情報探索を行うツールです．
-        '''),
-        html.Hr(),
-    ], style={"background-color":"red", "min-height":"10vh"}),
+        dbc.Col(
+            html.H1(
+                id='title',
+                children='情報探索エンジン',
+                className="display-2",
+                style=dict(
+                    fontFamily="Oswald, sans-serif"
+                )
+            ),
+            md=12,
+            xl=6
+        ),
+        dbc.Col(
+            html.Div(
+            children=[
+                "情報探索をサポートする Web アプリケーションです．", html.Br(),
+                "Google 検索結果を2次元にマッピングし，", html.Br(),
+                "さらに勾配計算やクラスタリングをすることによって", html.Br(),
+                "情報探索をサポートします．",
+            ],
+            className="h4"),
+            md=12,
+            xl=6
+        )
+    ], style={"background-color":"red", "min-height":"10vh"},
+    align="end"),
+    html.Hr(),
     # dbc.Button(
     #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
     # ),
