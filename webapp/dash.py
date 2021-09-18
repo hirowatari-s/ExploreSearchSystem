@@ -47,11 +47,13 @@ def prepare_materials(keyword, model_name):
         print("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
         labels = csv_df['site_name']
+        rank = csv_df['ranking']
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
         print("Fetch data to learn")
         df = fetch_gsearch_result(keyword)
         X , labels, df = make_bow(df)
+        rank = np.arange(1, X.shape[0]+1)  # FIXME
         df.to_csv(keyword+".csv")
         feature_file = 'data/tmp/'+keyword+'.npy'
         label_file = 'data/tmp/'+keyword+'_label.npy'
@@ -85,10 +87,11 @@ def prepare_materials(keyword, model_name):
         print("Learning finished.")
         with open(model_save_path, 'wb') as f:
             pickle.dump(history, f)
-    return csv_df, labels, X, history
+    return csv_df, labels, X, history, rank
 
 
 def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
+    print(X.shape, Z.shape)
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
@@ -104,7 +107,7 @@ def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
             y=np.linspace(-1, 1, u_resolution),
             z=U_matrix.reshape(u_resolution, u_resolution),
             name='contour',
-            colorscale="viridis",
+            colorscale="Greens",
             hoverinfo='skip',
             showscale=False,
         )
@@ -155,7 +158,7 @@ def draw_topics(fig, Y, n_components):
     return fig
 
 
-def draw_scatter(fig, Z, labels):
+def draw_scatter(fig, Z, labels, rank):
     fig.add_trace(
         go.Scatter(
             x=Z[:, 0],
@@ -163,7 +166,14 @@ def draw_scatter(fig, Z, labels):
             mode="markers",
             name='lv',
             marker=dict(
-                size=13,
+                size=rank[::-1],
+                sizemode='area',
+                sizeref=2. * max(rank) / (40. ** 2),
+                sizemin=4,
+                # line=dict(
+                #     width=1.5,
+                #     color="white"
+                # ),
             ),
             text=labels,
             hoverlabel=dict(
@@ -175,7 +185,7 @@ def draw_scatter(fig, Z, labels):
 
 
 def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
-    csv_df, labels, X, history = prepare_materials(keyword, model_name)
+    csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
     Z, Y, sigma = history['Z'], history['Y'], history['sigma']
 
     # Build figure
@@ -210,7 +220,7 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
         u_resolution = 100
         fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
-    fig = draw_scatter(fig, Z, labels)
+    fig = draw_scatter(fig, Z, labels, rank)
 
     if enable_favicon:
         for i, z in enumerate(Z):
@@ -299,6 +309,7 @@ def search_form_callback(style):
         Output('link', 'href'),
         Output('link', 'target'),
         Output('card-text', 'children'),
+        Output('snippet-text', 'children'),
         # Output('card-img', 'src'),
     ],
     [
@@ -310,14 +321,16 @@ def search_form_callback(style):
         State('link', 'href'),
         State('link', 'target'),
         State('card-text', 'children'),
+        State('snippet-text', 'children')
     ])
-def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title):
+def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title, prev_snippet):
     if hoverData:
         if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]):
             link_title = prev_linktext
             url = prev_url
             target = prev_target
             page_title = prev_page_title
+            snippet = prev_snippet
         else:
             csv_df = pd.read_csv(keyword+".csv")
             index = hoverData['points'][0]['pointIndex']
@@ -326,14 +339,16 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             url = csv_df['URL'][index]
             target = "_blank"
             page_title = labels[index]
+            snippet = csv_df['snippet'][index]
             # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
     else:
         link_title = "マウスを当ててみよう"
         url = "#"
         target = "_self"
         page_title = ""
+        snippet = ""
         # favicon_url = "https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png"
-    return link_title, url, target, page_title #, favicon_url
+    return link_title, url, target, page_title, snippet #, favicon_url
 
 
 app.clientside_callback(
@@ -351,6 +366,7 @@ link_card = dbc.Card([
     #     style="height: 50px; width: 50px;",
     # ),
     html.P("", id="card-text", className="h4"),
+    html.P("", id="snippet-text", className="h5"),
     html.A(
         id='link',
         href='#',
@@ -361,12 +377,17 @@ link_card = dbc.Card([
 ], id="link-card")
 
 app.layout = dbc.Container(children=[
-    html.H1(id='title', children='Hello Dash'),
+    html.H1(id='title', children='情報探索エンジン'),
     html.Div(children='''
-        Dash: A web application framework for Python.
+        情報探索を行うツールです．
     '''),
     html.Hr(),
 
+    html.Div(
+        id='search-form-div',
+        children=make_search_form('selection'),
+    ),
+    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0),
     dbc.Row([
         dbc.Col(
             dcc.Loading(
@@ -426,9 +447,4 @@ app.layout = dbc.Container(children=[
         value='selection',
         id="search-style-selector",
     ),
-    html.Div(
-        id='search-form-div',
-        children=make_search_form('selection'),
-    ),
-    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0)
 ], fluid=True)
