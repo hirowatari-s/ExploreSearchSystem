@@ -4,6 +4,7 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
+from re import search
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -415,73 +416,8 @@ link_card = dbc.Card([
     )
 ], id="link-card")
 
-app.layout = dbc.Container(children=[
-    html.H1(id='title', children='情報探索エンジン'),
-    html.Div(children='''
-        情報探索を行うツールです．
-    '''),
-    html.Hr(),
-    dbc.Button(
-        "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
-    ),
-    umatrix_modal,
 
-    html.Div(
-        id='search-form-div',
-        children=make_search_form('selection'),
-    ),
-    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0),
-    dbc.Row([
-        dbc.Col(
-            dcc.Loading(
-                dcc.Graph(
-                    id='example-graph',
-                    figure=make_figure("ファッション", "UKR"),
-                    config=dict(
-                        displayModeBar=False,
-                    )
-                ),
-                id="loading"
-            ),
-            width=8,
-            style={"height": "100%"}),
-        dbc.Col(link_card, width=4)
-        ],
-        align="center",
-        className="h-75",
-        style={"min-height" : "70vh"},
-        no_gutters=True),
-    dbc.RadioItems(
-            options=[
-                {'label': 'SOM', 'value': 'SOM'},
-                {'label': 'UKR', 'value': 'UKR'},
-            ],
-            value='UKR',
-            id="model-selector",
-            style={'textAlign': "center"}
-        ),
-        dbc.FormGroup([
-            dbc.Checkbox(
-                id="favicon-enabled",
-                children="ファビコンを表示する",
-                checked=False,
-            ),
-            dbc.Label(
-                "ロゴを表示する",
-                html_for="favicon-enabled",
-                className="form-check-label",
-            ),
-        ], check=True),
-    dbc.RadioItems(
-            options=[
-                {'label': 'U-matrix', 'value': 'U-matrix'},
-                {'label': 'topic', 'value': 'topic'},
-            ],
-            value='U-matrix',
-            id="viewer-selector",
-            style={'textAlign': "center"}
-        ),
-
+search_component = dbc.Col([
     dbc.RadioItems(
         options=[
             {'label': 'サンプルのデータセット', 'value': 'selection'},
@@ -489,5 +425,88 @@ app.layout = dbc.Container(children=[
         ],
         value='selection',
         id="search-style-selector",
+        style={"background-color": "purple"}
     ),
-], fluid=True)
+    html.Div(
+        id='search-form-div',
+        children=make_search_form('selection'),
+    ),
+    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0),
+])
+
+
+view_options = dbc.Col([
+    dbc.RadioItems(
+        options=[
+            {'label': 'SOM', 'value': 'SOM'},
+            {'label': 'UKR', 'value': 'UKR'},
+        ],
+        value='UKR',
+        id="model-selector",
+        style={'textAlign': "center", "background-color": "pink"}
+    ),
+    dbc.FormGroup([
+        dbc.Checkbox(
+            id="favicon-enabled",
+            children="ファビコンを表示する",
+            checked=False,
+        ),
+        dbc.Label(
+            "ロゴを表示する",
+            html_for="favicon-enabled",
+            className="form-check-label",
+        ),
+    ], check=True),
+    dbc.RadioItems(
+        options=[
+            {'label': 'U-matrix', 'value': 'U-matrix'},
+            {'label': 'topic', 'value': 'topic'},
+        ],
+        value='U-matrix',
+        id="viewer-selector",
+        style={'textAlign': "center", "background-color": "cyan"}
+    ),
+])
+
+
+result_component = dbc.Row(
+    [
+        dbc.Col(
+            dcc.Loading(
+                dcc.Graph(
+                    id='example-graph',
+                    figure=make_figure("ファッション", "UKR"),
+                    config=dict(displayModeBar=False)
+                ),
+                id="loading"
+            ),
+            width=8,
+            style={"height": "100%", "background-color": "blue"}),
+        dbc.Col(link_card, width=4, style={"background-color": "yellow"})
+    ],
+    align="center",
+    className="h-75",
+    style={"min-height": "70vh", "background-color": "green"},
+    no_gutters=True
+)
+
+
+app.layout = dbc.Container(children=[
+    dbc.Row([
+        html.H1(id='title', children='情報探索エンジン'),
+        html.Div(children='''
+            情報探索を行うツールです．
+        '''),
+        html.Hr(),
+    ], style={"background-color":"red"}),
+    # dbc.Button(
+    #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
+    # ),
+    umatrix_modal,
+
+    dbc.Row([
+        search_component,
+        view_options
+    ]),
+    result_component,
+])
