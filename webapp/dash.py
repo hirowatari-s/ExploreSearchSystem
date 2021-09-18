@@ -274,14 +274,16 @@ def make_search_form(style):
 
 @app.callback(
     Output('example-graph', 'figure'),
-    Input('explore-start', 'n_clicks'),
+    [
+        Input('explore-start', 'n_clicks'),
+        Input('model-selector', 'value'),
+        Input('viewer-selector', 'value'),
+    ],
     [
         State('search-form', 'value'),
-        State('model-selector', 'value'),
         State('favicon-enabled', 'checked'),
-        State('viewer-selector', 'value'),
     ])
-def load_learning(n_clicks, keyword, model_name, favicon, viewer_name):
+def load_learning(n_clicks, model_name, viewer_name,  keyword, favicon):
     return make_figure(keyword, model_name, favicon, viewer_name)
 
 
