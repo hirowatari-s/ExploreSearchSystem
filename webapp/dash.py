@@ -26,7 +26,7 @@ SAMPLE_DATASETS = [
 ]
 
 
-def make_figure(keyword, model_name="SOM"):
+def make_figure(keyword, model_name="SOM", viewer_name="U_matrix"):
     # Load data
     if keyword in SAMPLE_DATASETS:
         csv_df = pd.read_csv(keyword+".csv")
@@ -113,27 +113,30 @@ def make_figure(keyword, model_name="SOM"):
             showlegend=False,
         ),
     )
-    for i in range(n_components):
+
+    if viewer_name=="topic":
+        for i in range(n_components):
+            fig.add_trace(
+                go.Contour(
+                    x=np.linspace(-1, 1, resolution),
+                    y=np.linspace(-1, 1, resolution),
+                    z=W_mask_std[:, i].reshape(resolution, resolution),
+                    name='contour',
+                    colorscale=[
+                    [0, "rgba(0, 0, 0,0)"],
+                    [1.0, DPC_with_Alpha[i]]],
+                )
+            )
+    else:
         fig.add_trace(
             go.Contour(
-                x=np.linspace(-1, 1, resolution),
-                y=np.linspace(-1, 1, resolution),
-                z=W_mask_std[:, i].reshape(resolution, resolution),
+                x=np.linspace(-1, 1, u_resolution),
+                y=np.linspace(-1, 1, u_resolution),
+                z=U_matrix.reshape(u_resolution, u_resolution),
                 name='contour',
-                colorscale=[ 
-                [0, "rgba(0, 0, 0,0)"],
-                [1.0, DPC_with_Alpha[i]]],
+                colorscale="viridis",
             )
         )
-    # fig.add_trace(
-    #     go.Contour(
-    #         x=np.linspace(-1, 1, u_resolution),
-    #         y=np.linspace(-1, 1, u_resolution),
-    #         z=U_matrix.reshape(u_resolution, u_resolution),
-    #         name='contour',
-    #         colorscale="viridis",
-    #     )
-    # )
     fig.add_trace(
         go.Scatter(
             x=Z[:, 0],
@@ -187,9 +190,10 @@ def make_search_form(style):
     Output('example-graph', 'figure'),
     Input('explore-start', 'n_clicks'),
     State('search-form', 'value'),
-    State('model-selector', 'value'))
-def load_learning(n_clicks, keyword, model_name):
-    return make_figure(keyword, model_name)
+    State('model-selector', 'value'),
+    State('viewer-selector', 'value'))
+def load_learning(n_clicks, keyword, model_name, viewer_name):
+    return make_figure(keyword, model_name, viewer_name)
 
 
 @app.callback(
@@ -290,6 +294,16 @@ app.layout = dbc.Container(children=[
             id="model-selector",
             style={'textAlign': "center"}
         ),
+    dbc.RadioItems(
+            options=[
+                {'label': 'U-matrix', 'value': 'U-matrix'},
+                {'label': 'topic', 'value': 'topic'},
+            ],
+            value='U-matrix',
+            id="viewer-selector",
+            style={'textAlign': "center"}
+        ),
+
     dbc.RadioItems(
         options=[
             {'label': 'サンプルのデータセット', 'value': 'selection'},
