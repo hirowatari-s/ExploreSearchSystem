@@ -87,7 +87,7 @@ def prepare_materials(keyword, model_name):
         print("Learning finished.")
         with open(model_save_path, 'wb') as f:
             pickle.dump(history, f)
-    return csv_df, labels, X, history
+    return csv_df, labels, X, history, rank
 
 
 def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
@@ -158,7 +158,7 @@ def draw_topics(fig, Y, n_components):
     return fig
 
 
-def draw_scatter(fig, Z, labels):
+def draw_scatter(fig, Z, labels, rank):
     fig.add_trace(
         go.Scatter(
             x=Z[:, 0],
@@ -166,11 +166,10 @@ def draw_scatter(fig, Z, labels):
             mode="markers",
             name='lv',
             marker=dict(
-                size=13,
-                # size=rank[::-1],
-                # sizemode='area',
-                # sizeref=2. * max(rank) / (40. ** 2),
-                # sizemin=4,
+                size=rank[::-1],
+                sizemode='area',
+                sizeref=2. * max(rank) / (40. ** 2),
+                sizemin=4,
                 # line=dict(
                 #     width=1.5,
                 #     color="white"
@@ -186,7 +185,7 @@ def draw_scatter(fig, Z, labels):
 
 
 def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
-    csv_df, labels, X, history = prepare_materials(keyword, model_name)
+    csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
     Z, Y, sigma = history['Z'], history['Y'], history['sigma']
 
     # Build figure
@@ -221,7 +220,7 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
         u_resolution = 100
         fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
-    fig = draw_scatter(fig, Z, labels)
+    fig = draw_scatter(fig, Z, labels, rank)
 
     if enable_favicon:
         for i, z in enumerate(Z):
