@@ -59,9 +59,10 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
         np.save(feature_file, X)
         np.save(label_file, labels)
 
-    if pathlib.Path('data/tmp/'+keyword+'_history.pickle').exists():
+    model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
+    if pathlib.Path(model_save_path).exists():
         print("Model already learned")
-        with open('data/tmp/'+keyword+'_history.pickle', 'rb') as f:
+        with open(model_save_path, 'rb') as f:
             history = pickle.load(f)
     else:
         print("Model learning")
@@ -83,7 +84,7 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
             sigma=mm.history['sigma'][-1],
         )
         print("Learning finished.")
-        with open('data/tmp/'+keyword+'_history.pickle', 'wb') as f:
+        with open(model_save_path, 'wb') as f:
             pickle.dump(history, f)
 
     Z = history['Z']
