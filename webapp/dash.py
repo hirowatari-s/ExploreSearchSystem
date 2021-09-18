@@ -222,7 +222,7 @@ def toggle_modal(n1, n2, is_open):
 # U-Matrix の説明用のモーダル
 umatrix_modal = dbc.Modal([
     dbc.ModalHeader("U-Matrix 表示とは？"),
-    dbc.ModalBody("説明"),
+    dbc.ModalBody("青い領域がクラスタ，赤い領域がクラスタ境界を表す"),
     dbc.ModalFooter(
         dbc.Button(
             "Close", id="close-umatrix-modal", className="ml-auto", n_clicks=0
