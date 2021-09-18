@@ -4,6 +4,7 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
+from urllib import parse
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -12,21 +13,26 @@ import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 from webapp import app
+import requests
+import io
+from PIL import Image
 from Grad_norm import Grad_Norm
 from som import ManifoldModeling as MM
 import pathlib
 from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
 from sklearn.decomposition import NMF
+import tldextract
 
 
 PROJECT_ROOT = pathlib.Path('.')
 SAMPLE_DATASETS = [
     csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
 ]
+domain_favicon_map = dict()
 
 
-def make_figure(keyword, model_name="SOM", viewer_name="U_matrix"):
+def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
     # Load data
     if keyword in SAMPLE_DATASETS:
         csv_df = pd.read_csv(keyword+".csv")
@@ -100,17 +106,25 @@ def make_figure(keyword, model_name="SOM", viewer_name="U_matrix"):
     # Build figure
     fig = go.Figure(
         layout=go.Layout(
-            xaxis={
-                'range': [Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
-                'visible': False
-            },
-            yaxis={
-                'range': [Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
-                'visible': False,
-                'scaleanchor': 'x',
-                'scaleratio': 1.0
-            },
+            xaxis=dict(
+                range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
+                visible=False,
+                autorange=True,
+            ),
+            yaxis=dict(
+                range=[Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
+                visible=False,
+                scaleanchor='x',
+                scaleratio=1.0,
+                autorange=True,
+            ),
             showlegend=False,
+            margin=dict(
+                b=0,
+                t=0,
+                l=0,
+                r=0,
+            )
         ),
     )
 
@@ -125,6 +139,8 @@ def make_figure(keyword, model_name="SOM", viewer_name="U_matrix"):
                     colorscale=[
                     [0, "rgba(0, 0, 0,0)"],
                     [1.0, DPC_with_Alpha[i]]],
+                    hoverinfo='skip',
+                    showscale=False,
                 )
             )
     else:
@@ -135,6 +151,8 @@ def make_figure(keyword, model_name="SOM", viewer_name="U_matrix"):
                 z=U_matrix.reshape(u_resolution, u_resolution),
                 name='contour',
                 colorscale="viridis",
+                hoverinfo='skip',
+                showscale=False,
             )
         )
     fig.add_trace(
@@ -146,9 +164,36 @@ def make_figure(keyword, model_name="SOM", viewer_name="U_matrix"):
             marker=dict(
                 size=13,
             ),
-            text=labels
+            text=labels,
+            hoverlabel=dict(
+                bgcolor="rgba(255, 255, 255, 0.75)",
+            ),
         )
     )
+
+    if enable_favicon:
+        for i, z in enumerate(Z):
+            url = csv_df['URL'][i]
+            parser = tldextract.extract(url)
+            if not parser.domain in domain_favicon_map:
+                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+                res = requests.get(favicon_url)
+                domain_favicon_map[parser.domain] = Image.open(io.BytesIO(res.content))
+            logo_img = domain_favicon_map[parser.domain]
+            print("fetch:", url)
+            fig.add_layout_image(
+                    x=z[0],
+                    sizex=0.1,
+                    y=z[1],
+                    sizey=0.1,
+                    xref="x",
+                    yref="y",
+                    opacity=0.5,
+                    xanchor="center",
+                    yanchor="middle",
+                    layer="above",
+                    source=logo_img
+            )
     fig.update_coloraxes(
         showscale=False
     )
@@ -189,11 +234,14 @@ def make_search_form(style):
 @app.callback(
     Output('example-graph', 'figure'),
     Input('explore-start', 'n_clicks'),
-    State('search-form', 'value'),
-    State('model-selector', 'value'),
-    State('viewer-selector', 'value'))
-def load_learning(n_clicks, keyword, model_name, viewer_name):
-    return make_figure(keyword, model_name, viewer_name)
+    [
+        State('search-form', 'value'),
+        State('model-selector', 'value'),
+        State('favicon-enabled', 'checked'),
+        State('viewer-selector', 'value'),
+    ])
+def load_learning(n_clicks, keyword, model_name, favicon, viewer_name):
+    return make_figure(keyword, model_name, favicon, viewer_name)
 
 
 @app.callback(
@@ -245,6 +293,12 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
     return link_title, url, target, page_title #, favicon_url
 
 
+app.clientside_callback(
+    "onLatentClicked",
+    Output('explore-start', 'outline'),
+    Input('example-graph', 'clickData'))
+
+
 link_card = dbc.Card([
     # dbc.CardImg(
     #     id="card-img",
@@ -282,9 +336,14 @@ app.layout = dbc.Container(children=[
                 ),
                 id="loading"
             ),
-            md=8),
-        dbc.Col(link_card, md=4)
-    ], align="center"),
+            width=8,
+            style={"height": "100%"}),
+        dbc.Col(link_card, width=4)
+        ],
+        align="center",
+        className="h-75",
+        style={"min-height" : "70vh"},
+        no_gutters=True),
     dbc.RadioItems(
             options=[
                 {'label': 'SOM', 'value': 'SOM'},
@@ -294,6 +353,18 @@ app.layout = dbc.Container(children=[
             id="model-selector",
             style={'textAlign': "center"}
         ),
+        dbc.FormGroup([
+            dbc.Checkbox(
+                id="favicon-enabled",
+                children="ファビコンを表示する",
+                checked=False,
+            ),
+            dbc.Label(
+                "ロゴを表示する",
+                html_for="favicon-enabled",
+                className="form-check-label",
+            ),
+        ], check=True),
     dbc.RadioItems(
             options=[
                 {'label': 'U-matrix', 'value': 'U-matrix'},
@@ -317,4 +388,4 @@ app.layout = dbc.Container(children=[
         children=make_search_form('selection'),
     ),
     dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0)
-])
+], fluid=True)
