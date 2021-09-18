@@ -4,7 +4,6 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
-from urllib import parse
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -21,8 +20,9 @@ from som import ManifoldModeling as MM
 import pathlib
 from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
-from urllib.parse import urlparse
+from sklearn.decomposition import NMF
 import tldextract
+import pickle
 
 
 PROJECT_ROOT = pathlib.Path('.')
@@ -30,15 +30,26 @@ SAMPLE_DATASETS = [
     csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
 ]
 domain_favicon_map = dict()
+resolution = 20
 
 
-def make_figure(keyword, model_name, enable_favicon=False):
+def prepare_materials(keyword, model_name):
+    # Learn model
+    nb_epoch = 50
+    sigma_max = 2.2
+    sigma_min = 0.3
+    tau = 50
+    latent_dim = 2
+    seed = 1
+
     # Load data
     if keyword in SAMPLE_DATASETS:
+        print("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
         labels = csv_df['site_name']
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
+        print("Fetch data to learn")
         df = fetch_gsearch_result(keyword)
         X , labels, df = make_bow(df)
         df.to_csv(keyword+".csv")
@@ -47,39 +58,125 @@ def make_figure(keyword, model_name, enable_favicon=False):
         np.save(feature_file, X)
         np.save(label_file, labels)
 
+    model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
+    if pathlib.Path(model_save_path).exists():
+        print("Model already learned")
+        with open(model_save_path, 'rb') as f:
+            history = pickle.load(f)
+    else:
+        print("Model learning")
+        np.random.seed(seed)
+        mm = MM(
+            X,
+            latent_dim=latent_dim,
+            resolution=resolution,
+            sigma_max=sigma_max,
+            sigma_min=sigma_min,
+            model_name=model_name,
+            tau=tau,
+            init='PCA'
+        )
+        mm.fit(nb_epoch=nb_epoch)
+        history = dict(
+            Z=mm.history['z'][-1],
+            Y=mm.history['y'][-1],
+            sigma=mm.history['sigma'][-1],
+        )
+        print("Learning finished.")
+        with open(model_save_path, 'wb') as f:
+            pickle.dump(history, f)
+    return csv_df, labels, X, history
 
-    # Learn model
-    nb_epoch = 50
-    resolution = 20
-    sigma_max = 2.2
-    sigma_min = 0.3
-    tau = 50
-    latent_dim = 2
-    seed = 1
 
-    np.random.seed(seed)
-    mm = MM(
-        X,
-        latent_dim=latent_dim,
-        resolution=resolution,
-        sigma_max=sigma_max,
-        sigma_min=sigma_min,
-        model_name=model_name,
-        tau=tau,
-        init='PCA'
-    )
-    mm.fit(nb_epoch=nb_epoch)
-    print("Learning finished.")
-    Z = mm.history['z'][-1]
-
-    # Make U-Matrix
+def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
-        sigma=mm.history['sigma'][-1],
-        labels=labels, resolution=100, title_text="dammy"
+        sigma=sigma,
+        labels=labels,
+        resolution=u_resolution,
+        title_text="dammy"
     )
-    U_matrix, resolution, _ = umatrix.calc_umatrix()
+    U_matrix, _, _ = umatrix.calc_umatrix()
+    fig.add_trace(
+        go.Contour(
+            x=np.linspace(-1, 1, u_resolution),
+            y=np.linspace(-1, 1, u_resolution),
+            z=U_matrix.reshape(u_resolution, u_resolution),
+            name='contour',
+            colorscale="viridis",
+            hoverinfo='skip',
+            showscale=False,
+        )
+    )
+    return fig
+
+
+def draw_topics(fig, Y, n_components):
+    # decomposed by Topic
+    model_t3 = NMF(
+        n_components=n_components,
+        init='random',
+        random_state=2,
+        max_iter=300,
+        solver='cd'
+    )
+    W = model_t3.fit_transform(Y)
+
+    # For mask and normalization(min:0, max->1)
+    mask_std = np.zeros(W.shape)
+    mask = np.argmax(W, axis=1)
+    for i, max_k in enumerate(mask):
+        mask_std[i, max_k] = 1 / np.max(W)
+    W_mask_std = W * mask_std
+    DEFAULT_PLOTLY_COLORS=[
+        'rgb(31, 119, 180)', 'rgb(255, 127, 14)',
+        'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
+        'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
+        'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
+        'rgb(188, 189, 34)', 'rgb(23, 190, 207)'
+    ]
+    alpha = 0.1
+    DPC_with_Alpha = [k[:-1]+', '+str(alpha)+k[-1:] for k in DEFAULT_PLOTLY_COLORS]
+    for i in range(n_components):
+        fig.add_trace(
+            go.Contour(
+                x=np.linspace(-1, 1, resolution),
+                y=np.linspace(-1, 1, resolution),
+                z=W_mask_std[:, i].reshape(resolution, resolution),
+                name='contour',
+                colorscale=[
+                [0, "rgba(0, 0, 0,0)"],
+                [1.0, DPC_with_Alpha[i]]],
+                hoverinfo='skip',
+                showscale=False,
+            )
+        )
+    return fig
+
+
+def draw_scatter(fig, Z, labels):
+    fig.add_trace(
+        go.Scatter(
+            x=Z[:, 0],
+            y=Z[:, 1],
+            mode="markers",
+            name='lv',
+            marker=dict(
+                size=13,
+            ),
+            text=labels,
+            hoverlabel=dict(
+                bgcolor="rgba(255, 255, 255, 0.75)",
+            ),
+        )
+    )
+    return fig
+
+
+def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
+    csv_df, labels, X, history = prepare_materials(keyword, model_name)
+    Z, Y, sigma = history['Z'], history['Y'], history['sigma']
 
     # Build figure
     fig = go.Figure(
@@ -105,32 +202,15 @@ def make_figure(keyword, model_name, enable_favicon=False):
             )
         ),
     )
-    fig.add_trace(
-        go.Contour(
-            x=np.linspace(-1, 1, resolution),
-            y=np.linspace(-1, 1, resolution),
-            z=U_matrix.reshape(resolution, resolution),
-            name='contour',
-            colorscale="viridis",
-            hoverinfo='skip',
-            showscale=False,
-        ),
-    )
-    fig.add_trace(
-        go.Scatter(
-            x=Z[:, 0],
-            y=Z[:, 1],
-            mode="markers",
-            name='lv',
-            marker=dict(
-                size=13,
-            ),
-            text=labels,
-            hoverlabel=dict(
-                bgcolor="rgba(255, 255, 255, 0.75)",
-            ),
-        )
-    )
+
+    if viewer_name=="topic":
+        n_components = 5
+        fig = draw_topics(fig, Y, n_components)
+    else:
+        u_resolution = 100
+        fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
+
+    fig = draw_scatter(fig, Z, labels)
 
     if enable_favicon:
         for i, z in enumerate(Z):
@@ -194,14 +274,17 @@ def make_search_form(style):
 
 @app.callback(
     Output('example-graph', 'figure'),
-    Input('explore-start', 'n_clicks'),
+    [
+        Input('explore-start', 'n_clicks'),
+        Input('model-selector', 'value'),
+        Input('viewer-selector', 'value'),
+    ],
     [
         State('search-form', 'value'),
-        State('model-selector', 'value'),
         State('favicon-enabled', 'checked'),
     ])
-def load_learning(n_clicks, keyword, model_name, favicon):
-    return make_figure(keyword, model_name, favicon)
+def load_learning(n_clicks, model_name, viewer_name,  keyword, favicon):
+    return make_figure(keyword, model_name, favicon, viewer_name)
 
 
 @app.callback(
@@ -325,6 +408,16 @@ app.layout = dbc.Container(children=[
                 className="form-check-label",
             ),
         ], check=True),
+    dbc.RadioItems(
+            options=[
+                {'label': 'U-matrix', 'value': 'U-matrix'},
+                {'label': 'topic', 'value': 'topic'},
+            ],
+            value='U-matrix',
+            id="viewer-selector",
+            style={'textAlign': "center"}
+        ),
+
     dbc.RadioItems(
         options=[
             {'label': 'サンプルのデータセット', 'value': 'selection'},

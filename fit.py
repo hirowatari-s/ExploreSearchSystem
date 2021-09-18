@@ -1,8 +1,11 @@
+# import sys
+# sys.path.append('../')
 from som import ManifoldModeling as MM
 import matplotlib.pyplot as plt
 import matplotlib.animation as ani
 import numpy as np
 import pickle
+from sklearn.decomposition import NMF
 
 def update(i, fig_title, Z):
     if i != 0:
@@ -12,7 +15,7 @@ def update(i, fig_title, Z):
 
 
 if __name__ == '__main__':
-    from dev.Grad_norm import Grad_Norm
+    from dev.Grad_norm_dev import Grad_Norm
 
     keyword = "ファッション"
     model = "SOM"
@@ -36,7 +39,7 @@ if __name__ == '__main__':
 
     np.random.seed(seed)
 
-    mm = MM(X, latent_dim=latent_dim, resolution=resolution, sigma_max=sigma_max, sigma_min=sigma_min, tau=tau, init='PCA')
+    mm = MM(X, model_name='SOM', latent_dim=latent_dim, resolution=resolution, sigma_max=sigma_max, sigma_min=sigma_min, tau=tau, init='PCA')
     mm.fit(nb_epoch=nb_epoch)
 
     mm_umatrix = Grad_Norm(X=X,
@@ -45,11 +48,23 @@ if __name__ == '__main__':
                             labels=labels,
                             resolution=umat_resolution,
                             title_text=title_text)
-    mm_umatrix.draw_umatrix()
+    # mm_umatrix.draw_umatrix()
+    Z = mm.history['z'][-1]
+    Y = mm.history['y'][-1]
+    model_t3 = NMF(n_components=5, init='random', random_state=2, max_iter=300,
+                           solver='cd')
+    Wt3 = model_t3.fit_transform(Y)
+    Ht3 = model_t3.components_
+
+    fig = plt.figure(figsize=(16, 9))
+    two = plt.imshow(Wt3[:, 1].reshape(resolution, resolution),
+                                   extent=[Z[:, 0].min(), Z[:, 0].max(), Z[:, 1].min(),
+                                           Z[:, 1].max()],
+                                   interpolation=None, alpha=0.8)
+    plt.show()
+
     
-    Fig = plt.figure(figsize=(16, 9))
     # animation = ani.FuncAnimation(Fig, update, fargs=(np.zeros(10, 10, 2)))
-    fig = plt.figure(figsize = (10, 6))
     # ani = ani.FuncAnimation(fig, update, fargs = ('Initial Animation! ', mm.history['z']), \
     # interval = 1, frames = 500)
     # plt.show()
