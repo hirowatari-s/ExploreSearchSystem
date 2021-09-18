@@ -30,13 +30,12 @@ SAMPLE_DATASETS = [
     csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
 ]
 domain_favicon_map = dict()
+resolution = 20
 
 
-def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
+def prepare_materials(keyword, model_name):
     # Learn model
     nb_epoch = 50
-    resolution = 20
-    u_resolution = 100
     sigma_max = 2.2
     sigma_min = 0.3
     tau = 50
@@ -86,40 +85,98 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
         print("Learning finished.")
         with open(model_save_path, 'wb') as f:
             pickle.dump(history, f)
+    return csv_df, labels, X, history
 
-    Z = history['Z']
 
-    # Make Visualize
+def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
-        sigma=history['sigma'],
-        labels=labels, resolution=u_resolution, title_text="dammy"
+        sigma=sigma,
+        labels=labels,
+        resolution=u_resolution,
+        title_text="dammy"
     )
     U_matrix, _, _ = umatrix.calc_umatrix()
+    fig.add_trace(
+        go.Contour(
+            x=np.linspace(-1, 1, u_resolution),
+            y=np.linspace(-1, 1, u_resolution),
+            z=U_matrix.reshape(u_resolution, u_resolution),
+            name='contour',
+            colorscale="viridis",
+            hoverinfo='skip',
+            showscale=False,
+        )
+    )
+    return fig
 
+
+def draw_topics(fig, Y, n_components):
     # decomposed by Topic
-    n_components = 5
-    model_t3 = NMF(n_components=n_components, init='random', random_state=2, max_iter=300,
-                           solver='cd')
-    Y =  history['Y']
+    model_t3 = NMF(
+        n_components=n_components,
+        init='random',
+        random_state=2,
+        max_iter=300,
+        solver='cd'
+    )
     W = model_t3.fit_transform(Y)
+
     # For mask and normalization(min:0, max->1)
     mask_std = np.zeros(W.shape)
     mask = np.argmax(W, axis=1)
-    k_max = np.max(W, axis=0)
     for i, max_k in enumerate(mask):
         mask_std[i, max_k] = 1 / np.max(W)
-        # mask_std[i, max_k] = 1 / k_max[max_k]
     W_mask_std = W * mask_std
-    alpha = 0.1
-    DEFAULT_PLOTLY_COLORS=['rgb(31, 119, 180)', 'rgb(255, 127, 14)',
-                       'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
-                       'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
-                       'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
-                       'rgb(188, 189, 34)', 'rgb(23, 190, 207)']
+    DEFAULT_PLOTLY_COLORS=[
+        'rgb(31, 119, 180)', 'rgb(255, 127, 14)',
+        'rgb(44, 160, 44)', 'rgb(214, 39, 40)',
+        'rgb(148, 103, 189)', 'rgb(140, 86, 75)',
+        'rgb(227, 119, 194)', 'rgb(127, 127, 127)',
+        'rgb(188, 189, 34)', 'rgb(23, 190, 207)'
+    ]
     alpha = 0.1
     DPC_with_Alpha = [k[:-1]+', '+str(alpha)+k[-1:] for k in DEFAULT_PLOTLY_COLORS]
+    for i in range(n_components):
+        fig.add_trace(
+            go.Contour(
+                x=np.linspace(-1, 1, resolution),
+                y=np.linspace(-1, 1, resolution),
+                z=W_mask_std[:, i].reshape(resolution, resolution),
+                name='contour',
+                colorscale=[
+                [0, "rgba(0, 0, 0,0)"],
+                [1.0, DPC_with_Alpha[i]]],
+                hoverinfo='skip',
+                showscale=False,
+            )
+        )
+    return fig
+
+
+def draw_scatter(fig, Z, labels):
+    fig.add_trace(
+        go.Scatter(
+            x=Z[:, 0],
+            y=Z[:, 1],
+            mode="markers",
+            name='lv',
+            marker=dict(
+                size=13,
+            ),
+            text=labels,
+            hoverlabel=dict(
+                bgcolor="rgba(255, 255, 255, 0.75)",
+            ),
+        )
+    )
+    return fig
+
+
+def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
+    csv_df, labels, X, history = prepare_materials(keyword, model_name)
+    Z, Y, sigma = history['Z'], history['Y'], history['sigma']
 
     # Build figure
     fig = go.Figure(
@@ -147,47 +204,13 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     )
 
     if viewer_name=="topic":
-        for i in range(n_components):
-            fig.add_trace(
-                go.Contour(
-                    x=np.linspace(-1, 1, resolution),
-                    y=np.linspace(-1, 1, resolution),
-                    z=W_mask_std[:, i].reshape(resolution, resolution),
-                    name='contour',
-                    colorscale=[
-                    [0, "rgba(0, 0, 0,0)"],
-                    [1.0, DPC_with_Alpha[i]]],
-                    hoverinfo='skip',
-                    showscale=False,
-                )
-            )
+        n_components = 5
+        fig = draw_topics(fig, Y, n_components)
     else:
-        fig.add_trace(
-            go.Contour(
-                x=np.linspace(-1, 1, u_resolution),
-                y=np.linspace(-1, 1, u_resolution),
-                z=U_matrix.reshape(u_resolution, u_resolution),
-                name='contour',
-                colorscale="viridis",
-                hoverinfo='skip',
-                showscale=False,
-            )
-        )
-    fig.add_trace(
-        go.Scatter(
-            x=Z[:, 0],
-            y=Z[:, 1],
-            mode="markers",
-            name='lv',
-            marker=dict(
-                size=13,
-            ),
-            text=labels,
-            hoverlabel=dict(
-                bgcolor="rgba(255, 255, 255, 0.75)",
-            ),
-        )
-    )
+        u_resolution = 100
+        fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
+
+    fig = draw_scatter(fig, Z, labels)
 
     if enable_favicon:
         for i, z in enumerate(Z):
