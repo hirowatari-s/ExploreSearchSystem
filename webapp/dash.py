@@ -54,7 +54,7 @@ def prepare_materials(keyword, model_name):
     else:
         print("Fetch data to learn")
         csv_df = fetch_gsearch_result(keyword)
-        X , labels, df = make_bow(csv_df)
+        X , labels, _ = make_bow(csv_df)
         rank = np.arange(1, X.shape[0]+1)  # FIXME
         csv_df.to_csv(keyword+".csv")
         feature_file = 'data/tmp/'+keyword+'.npy'
@@ -172,10 +172,6 @@ def draw_scatter(fig, Z, labels, rank):
                 sizemode='area',
                 sizeref=2. * max(rank) / (40. ** 2),
                 sizemin=4,
-                # line=dict(
-                #     width=1.5,
-                #     color="white"
-                # ),
             ),
             text=labels,
             hoverlabel=dict(
@@ -203,15 +199,15 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
                 visible=False,
                 scaleanchor='x',
                 scaleratio=1.0,
-                autorange=True,
             ),
             showlegend=False,
+            autosize=True,
             margin=dict(
                 b=0,
                 t=0,
                 l=0,
                 r=0,
-            )
+            ),
         ),
     )
 
@@ -325,7 +321,6 @@ def search_form_callback(style):
         Output('link', 'target'),
         Output('card-text', 'children'),
         Output('snippet-text', 'children'),
-        # Output('card-img', 'src'),
     ],
     [
         Input('example-graph', 'hoverData'),
@@ -355,14 +350,12 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             target = "_blank"
             page_title = labels[index]
             snippet = csv_df['snippet'][index]
-            # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
     else:
         link_title = "マウスを当ててみよう"
         url = "#"
         target = "_self"
         page_title = ""
         snippet = ""
-        # favicon_url = "https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png"
     return link_title, url, target, page_title, snippet #, favicon_url
 
 
@@ -401,14 +394,8 @@ app.callback(
 
 
 link_card = dbc.Card([
-    # dbc.CardImg(
-    #     id="card-img",
-    #     src="https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png",
-    #     top=True,
-    #     className="img-fluid img-thumbnail",
-    #     style="height: 50px; width: 50px;",
-    # ),
-    html.P("", id="card-text", className="h4"),
+    # html.P("", id="card-text", className="h4"),
+    dbc.CardHeader("", id="card-text", className="h4"),
     html.P("", id="snippet-text", className="h5"),
     html.A(
         id='link',
@@ -416,6 +403,10 @@ link_card = dbc.Card([
         children="マウスを当ててみよう",
         target="_self",
         className="btn btn-outline-primary btn-lg",
+    ),
+    dbc.CardFooter(
+        "マップ中の丸をクリックしても該当ページへ飛べます．",
+        className="font-weight-light",
     )
 ], id="link-card")
 
