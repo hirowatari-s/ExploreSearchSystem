@@ -4,25 +4,50 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
+from urllib import parse
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
-import plotly.express as px
 import pandas as pd
 import numpy as np
 from webapp import app
-from dev.Grad_norm import Grad_Norm
-from fit import SOM
+import requests
+import io
+from PIL import Image
+from Grad_norm import Grad_Norm
+from som import ManifoldModeling as MM
+import pathlib
+from scraperbox import fetch_gsearch_result
+from make_BoW import make_bow
+import tldextract
 
 
-def make_figure(keyword):
+PROJECT_ROOT = pathlib.Path('.')
+SAMPLE_DATASETS = [
+    csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
+]
+domain_favicon_map = dict()
+
+
+def make_figure(keyword, model_name, enable_favicon=False):
     # Load data
-    csv_df = pd.read_csv(keyword+".csv")
-    labels = csv_df['site_name']
-    rank = csv_df['ranking']
-    X = np.load("data/tmp/" + keyword + ".npy")
+    if keyword in SAMPLE_DATASETS:
+        csv_df = pd.read_csv(keyword+".csv")
+        labels = csv_df['site_name']
+        rank = csv_df['ranking']
+        X = np.load("data/tmp/" + keyword + ".npy")
+    else:
+        df = fetch_gsearch_result(keyword)
+        X , labels, df = make_bow(df)
+        rank = np.arange(1, X.shape[0]+1)  # FIXME
+        df.to_csv(keyword+".csv")
+        feature_file = 'data/tmp/'+keyword+'.npy'
+        label_file = 'data/tmp/'+keyword+'_label.npy'
+        np.save(feature_file, X)
+        np.save(label_file, labels)
+
 
     # Learn model
     nb_epoch = 50
@@ -34,24 +59,25 @@ def make_figure(keyword):
     seed = 1
 
     np.random.seed(seed)
-    som = SOM(
+    mm = MM(
         X,
         latent_dim=latent_dim,
         resolution=resolution,
         sigma_max=sigma_max,
         sigma_min=sigma_min,
+        model_name=model_name,
         tau=tau,
         init='PCA'
     )
-    som.fit(nb_epoch=nb_epoch)
+    mm.fit(nb_epoch=nb_epoch)
     print("Learning finished.")
-    Z = som.history['z'][-1]
+    Z = mm.history['z'][-1]
 
     # Make U-Matrix
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
-        sigma=som.history['sigma'][-1],
+        sigma=mm.history['sigma'][-1],
         labels=labels, resolution=100, title_text="dammy"
     )
     U_matrix, resolution, _ = umatrix.calc_umatrix()
@@ -59,18 +85,25 @@ def make_figure(keyword):
     # Build figure
     fig = go.Figure(
         layout=go.Layout(
-            xaxis={
-                'range': [Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
-                'visible': False
-            },
-            yaxis={
-                'range': [Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
-                'visible': False,
-                'scaleanchor': 'x',
-                'scaleratio': 1.0
-            },
+            xaxis=dict(
+                range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
+                visible=False,
+                autorange=True,
+            ),
+            yaxis=dict(
+                range=[Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
+                visible=False,
+                scaleanchor='x',
+                scaleratio=1.0,
+                autorange=True,
+            ),
             showlegend=False,
-            # **self.params_figure_layout
+            margin=dict(
+                b=0,
+                t=0,
+                l=0,
+                r=0,
+            )
         ),
     )
     fig.add_trace(
@@ -80,7 +113,9 @@ def make_figure(keyword):
             z=U_matrix.reshape(resolution, resolution),
             name='contour',
             colorscale="rdbu",
-        )
+            hoverinfo='skip',
+            showscale=False,
+        ),
     )
     fig.add_trace(
         go.Scatter(
@@ -98,9 +133,36 @@ def make_figure(keyword):
                 #     color="white"
                 # ),
             ),
-            text=labels
+            text=labels,
+            hoverlabel=dict(
+                bgcolor="rgba(255, 255, 255, 0.75)",
+            ),
         )
     )
+
+    if enable_favicon:
+        for i, z in enumerate(Z):
+            url = csv_df['URL'][i]
+            parser = tldextract.extract(url)
+            if not parser.domain in domain_favicon_map:
+                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+                res = requests.get(favicon_url)
+                domain_favicon_map[parser.domain] = Image.open(io.BytesIO(res.content))
+            logo_img = domain_favicon_map[parser.domain]
+            print("fetch:", url)
+            fig.add_layout_image(
+                    x=z[0],
+                    sizex=0.1,
+                    y=z[1],
+                    sizey=0.1,
+                    xref="x",
+                    yref="y",
+                    opacity=0.5,
+                    xanchor="center",
+                    yanchor="middle",
+                    layer="above",
+                    source=logo_img
+            )
     fig.update_coloraxes(
         showscale=False
     )
@@ -119,15 +181,42 @@ def make_figure(keyword):
     )
 
     return fig
-# fig.update_layout(hovermode="lv")
-# fig.update_layout(legend_title_text='Trend')
 
+
+def make_search_form(style):
+    form_id = 'search-form'
+    if style == 'selection':
+        return dcc.Dropdown(
+            id=form_id,
+            options=[
+                {'label': name, 'value': name} for name in SAMPLE_DATASETS
+            ],
+            value='ファッション'
+        )
+    else:
+        return dcc.Input(
+            id=form_id,
+            type="text",
+            placeholder="検索ワードを入力してください",
+        )
 
 @app.callback(
     Output('example-graph', 'figure'),
-    Input('dropdown', 'value'))
-def load_learning(value):
-    return make_figure(value)
+    Input('explore-start', 'n_clicks'),
+    [
+        State('search-form', 'value'),
+        State('model-selector', 'value'),
+        State('favicon-enabled', 'checked'),
+    ])
+def load_learning(n_clicks, keyword, model_name, favicon):
+    return make_figure(keyword, model_name, favicon)
+
+
+@app.callback(
+    Output('search-form-div', 'children'),
+    Input('search-style-selector', 'value'))
+def search_form_callback(style):
+    return make_search_form(style)
 
 
 @app.callback([
@@ -142,7 +231,7 @@ def load_learning(value):
         Input('example-graph', 'hoverData'),
     ],
     [
-        State('dropdown', 'value'),
+        State('search-form', 'value'),
         State('link', 'children'),
         State('link', 'href'),
         State('link', 'target'),
@@ -150,7 +239,6 @@ def load_learning(value):
         State('snippet-text', 'children')
     ])
 def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title, prev_snippet):
-    print(hoverData)
     if hoverData:
         if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]):
             link_title = prev_linktext
@@ -163,7 +251,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             index = hoverData['points'][0]['pointIndex']
             link_title = "サイトへ Go"
             labels = csv_df['site_name']
-            url = csv_df['URL'][index][12:-2]
+            url = csv_df['URL'][index]
             target = "_blank"
             page_title = labels[index]
             snippet = csv_df['snnipet'][index]
@@ -176,6 +264,12 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
         snippet = ""
         # favicon_url = "https://1.bp.blogspot.com/-9DCMH4MtPgw/UaVWN2aRpRI/AAAAAAAAUE4/jRRLie86hYI/s800/columbus.png"
     return link_title, url, target, page_title, snippet #, favicon_url
+
+
+app.clientside_callback(
+    "onLatentClicked",
+    Output('explore-start', 'outline'),
+    Input('example-graph', 'clickData'))
 
 
 link_card = dbc.Card([
@@ -216,13 +310,56 @@ app.layout = dbc.Container(children=[
 
     dbc.Row([
         dbc.Col(
-            dcc.Graph(
-                id='example-graph',
-                figure=make_figure("ファッション"),
-                config=dict(
-                    displayModeBar=False,
-                )
-        ), md=8),
-        dbc.Col(link_card, md=4)
-    ], align="center"),
-])
+            dcc.Loading(
+                dcc.Graph(
+                    id='example-graph',
+                    figure=make_figure("ファッション", "UKR"),
+                    config=dict(
+                        displayModeBar=False,
+                    )
+                ),
+                id="loading"
+            ),
+            width=8,
+            style={"height": "100%"}),
+        dbc.Col(link_card, width=4)
+        ],
+        align="center",
+        className="h-75",
+        style={"min-height" : "70vh"},
+        no_gutters=True),
+    dbc.RadioItems(
+            options=[
+                {'label': 'SOM', 'value': 'SOM'},
+                {'label': 'UKR', 'value': 'UKR'},
+            ],
+            value='UKR',
+            id="model-selector",
+            style={'textAlign': "center"}
+        ),
+        dbc.FormGroup([
+            dbc.Checkbox(
+                id="favicon-enabled",
+                children="ファビコンを表示する",
+                checked=False,
+            ),
+            dbc.Label(
+                "ロゴを表示する",
+                html_for="favicon-enabled",
+                className="form-check-label",
+            ),
+        ], check=True),
+    dbc.RadioItems(
+        options=[
+            {'label': 'サンプルのデータセット', 'value': 'selection'},
+            {'label': '自由に検索', 'value': 'freedom'},
+        ],
+        value='selection',
+        id="search-style-selector",
+    ),
+    html.Div(
+        id='search-form-div',
+        children=make_search_form('selection'),
+    ),
+    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0)
+], fluid=True)
