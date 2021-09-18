@@ -280,19 +280,20 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
 def make_search_form(style):
     form_id = 'search-form'
     if style == 'selection':
-        return dcc.Dropdown(
+        return dbc.Select(
             id=form_id,
             options=[
                 {'label': name, 'value': name} for name in SAMPLE_DATASETS
             ],
-            value='ファッション'
+            value='ペット'
         )
     else:
         return dcc.Input(
             id=form_id,
             type="text",
             placeholder="検索ワードを入力してください",
-            style=dict(width="100%")
+            style=dict(width="100%"),
+            className="input-control"
         )
 
 @app.callback(
@@ -420,22 +421,25 @@ link_card = dbc.Card([
 
 search_component = dbc.Col([
     dbc.Row(
-        dbc.RadioItems(
-            options=[
-                {'label': 'サンプルのデータセット', 'value': 'selection'},
-                {'label': '自由に検索', 'value': 'freedom'},
-            ],
-            value='selection',
-            id="search-style-selector",
-            style={"background-color": "purple"}
+        dbc.Col(
+            dbc.RadioItems(
+                options=[
+                    {'label': 'サンプルのデータセット', 'value': 'selection'},
+                    {'label': '自由に検索', 'value': 'freedom'},
+                ],
+                value='selection',
+                id="search-style-selector",
+                style={"background-color": "purple", "height":"100%", "margin":"0"},
+                inline=True,
+            ),
         ),
+        style=dict(height="40%"),
+        align="center"
     ),
     dbc.Row([
         dbc.Col(
-            html.Div(
-                id='search-form-div',
-                children=make_search_form('selection'),
-            ),
+            id='search-form-div',
+            children=make_search_form('selection'),
             width=10,
         ),
         dbc.Col(
@@ -457,14 +461,13 @@ view_options = dbc.Col([
             {'label': 'SOM', 'value': 'SOM'},
             {'label': 'UKR', 'value': 'UKR'},
         ],
-        value='UKR',
+        value='SOM',
         id="model-selector",
-        style={'textAlign': "center", "background-color": "pink"}
+        style={'textAlign': "center", "background-color": "pink", "display": "none"}
     ),
     dbc.FormGroup([
         dbc.Checkbox(
             id="favicon-enabled",
-            children="ファビコンを表示する",
             checked=False,
         ),
         dbc.Label(
@@ -491,18 +494,23 @@ result_component = dbc.Row(
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph',
-                    figure=make_figure("ファッション", "UKR"),
+                    figure=make_figure("ファッション", "SOM"),
                     config=dict(displayModeBar=False)
                 ),
                 id="loading"
             ),
-            width=8,
-            style={"height": "100%", "background-color": "blue"}),
-        dbc.Col(link_card, width=4, style={"background-color": "yellow"})
+            width=9,
+            style={"height": "100%", "background-color": "blue"}
+        ),
+        dbc.Col(
+            link_card,
+            width=3,
+            style={"background-color": "yellow"}
+        )
     ],
     align="center",
     className="h-75",
-    style={"min-height": "70vh", "background-color": "green"},
+    style={"min-height": "80vh", "background-color": "green"},
     no_gutters=True
 )
 
@@ -514,7 +522,7 @@ app.layout = dbc.Container(children=[
             情報探索を行うツールです．
         '''),
         html.Hr(),
-    ], style={"background-color":"red"}),
+    ], style={"background-color":"red", "min-height":"10vh"}),
     # dbc.Button(
     #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
     # ),
@@ -523,6 +531,7 @@ app.layout = dbc.Container(children=[
     dbc.Row([
         search_component,
         view_options
-    ]),
+        ],
+        style={"background-color":"yellow", "min-height":"10vh"}),
     result_component,
 ])
