@@ -112,7 +112,7 @@ def make_figure(keyword, model_name, enable_favicon=False):
             y=np.linspace(-1, 1, resolution),
             z=U_matrix.reshape(resolution, resolution),
             name='contour',
-            colorscale="rdbu",
+            colorscale="Greens",
             hoverinfo='skip',
             showscale=False,
         ),
