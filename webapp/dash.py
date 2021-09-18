@@ -254,7 +254,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
             url = csv_df['URL'][index]
             target = "_blank"
             page_title = labels[index]
-            snippet = csv_df['snnipet'][index]
+            snippet = csv_df['snippet'][index]
             # favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
     else:
         link_title = "マウスを当ててみよう"
