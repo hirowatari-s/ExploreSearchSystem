@@ -117,15 +117,20 @@ def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
 
 def draw_topics(fig, Y, n_components):
     # decomposed by Topic
-    model_t3 = NMF(
-        n_components=n_components,
-        init='random',
-        random_state=2,
-        max_iter=300,
-        solver='cd'
-    )
-    W = model_t3.fit_transform(Y)
-
+    recon = []
+    Ws= []
+    for n_comp in range(2,11):
+        model_t3 = NMF(
+                n_components=n_comp,
+                init='random',
+                random_state=2,
+                max_iter=300,
+                solver='cd')
+        Ws.append(model_t3.fit_transform(Y))
+        recon.append(model_t3.reconstruction_err_)
+    min_k = np.argmin(np.array(recon))
+    W = Ws[min_k]
+    n_components = range(2,11)[min_k]
     # For mask and normalization(min:0, max->1)
     mask_std = np.zeros(W.shape)
     mask = np.argmax(W, axis=1)
