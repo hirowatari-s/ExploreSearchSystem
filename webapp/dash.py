@@ -223,7 +223,7 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     fig = draw_scatter(fig, Z, labels, rank)
 
     if enable_favicon:
-        for i, z in enumerate(Z):
+        for i, z in enumerate(Z[::-1]):
             url = csv_df['URL'][i]
             parser = tldextract.extract(url)
             image_filepath = pathlib.Path(FILE_UPLOAD_PATH, parser.domain + '.png')
@@ -250,7 +250,7 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
                     sizey=0.1,
                     xref="x",
                     yref="y",
-                    opacity=0.5,
+                    opacity=1,
                     xanchor="center",
                     yanchor="middle",
                     layer="above",
