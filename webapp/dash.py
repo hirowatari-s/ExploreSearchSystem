@@ -11,7 +11,7 @@ import dash_html_components as html
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from webapp import app
+from webapp import app, FILE_UPLOAD_PATH
 import requests
 import io
 from PIL import Image
@@ -226,12 +226,23 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
         for i, z in enumerate(Z):
             url = csv_df['URL'][i]
             parser = tldextract.extract(url)
+            image_filepath = pathlib.Path(FILE_UPLOAD_PATH, parser.domain + '.png')
+            print("image path:", image_filepath.resolve())
             if not parser.domain in domain_favicon_map:
-                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
-                res = requests.get(favicon_url)
-                domain_favicon_map[parser.domain] = Image.open(io.BytesIO(res.content))
-            logo_img = domain_favicon_map[parser.domain]
-            print("fetch:", url)
+                if not image_filepath.exists():
+                    print("From API")
+                    favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+                    res = requests.get(favicon_url)
+                    logo_img = Image.open(io.BytesIO(res.content))
+                    logo_img.save(image_filepath)
+                else:
+                    print("From local")
+                    logo_img = Image.open(image_filepath)
+                domain_favicon_map[parser.domain] = logo_img
+            else:
+                print("From cache")
+                logo_img = domain_favicon_map[parser.domain]
+            print("fetched:", url)
             fig.add_layout_image(
                     x=z[0],
                     sizex=0.1,
