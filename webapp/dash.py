@@ -37,7 +37,7 @@ def prepare_materials(keyword, model_name):
     # Learn model
     nb_epoch = 50
     sigma_max = 2.2
-    sigma_min = 0.3
+    sigma_min = 0.2
     tau = 50
     latent_dim = 2
     seed = 1
