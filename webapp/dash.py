@@ -43,7 +43,7 @@ def prepare_materials(keyword, model_name):
     seed = 1
 
     # Load data
-    if keyword in SAMPLE_DATASETS:
+    if pathlib.Path(keyword+".csv").exists():
         print("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
         labels = csv_df['site_name']
