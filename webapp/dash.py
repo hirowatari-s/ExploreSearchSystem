@@ -182,6 +182,43 @@ def draw_scatter(fig, Z, labels, rank):
     return fig
 
 
+def draw_favicons(fig, Z, csv_df):
+    for i, z in enumerate(Z[::-1]):
+        url = csv_df['URL'][i]
+        parser = tldextract.extract(url)
+        image_filepath = pathlib.Path(FILE_UPLOAD_PATH, parser.domain + '.png')
+        print("image path:", image_filepath.resolve())
+        if not parser.domain in domain_favicon_map:
+            if not image_filepath.exists():
+                print("From API")
+                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+                res = requests.get(favicon_url)
+                logo_img = Image.open(io.BytesIO(res.content))
+                logo_img.save(image_filepath)
+            else:
+                print("From local")
+                logo_img = Image.open(image_filepath)
+            domain_favicon_map[parser.domain] = logo_img
+        else:
+            print("From cache")
+            logo_img = domain_favicon_map[parser.domain]
+        print("fetched:", url)
+        fig.add_layout_image(
+                x=z[0],
+                sizex=0.1,
+                y=z[1],
+                sizey=0.1,
+                xref="x",
+                yref="y",
+                opacity=1,
+                xanchor="center",
+                yanchor="middle",
+                layer="above",
+                source=logo_img
+        )
+    return fig
+
+
 def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
     csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
     Z, Y, sigma = history['Z'], history['Y'], history['sigma']
@@ -221,39 +258,8 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     fig = draw_scatter(fig, Z, labels, rank)
 
     if enable_favicon:
-        for i, z in enumerate(Z[::-1]):
-            url = csv_df['URL'][i]
-            parser = tldextract.extract(url)
-            image_filepath = pathlib.Path(FILE_UPLOAD_PATH, parser.domain + '.png')
-            print("image path:", image_filepath.resolve())
-            if not parser.domain in domain_favicon_map:
-                if not image_filepath.exists():
-                    print("From API")
-                    favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
-                    res = requests.get(favicon_url)
-                    logo_img = Image.open(io.BytesIO(res.content))
-                    logo_img.save(image_filepath)
-                else:
-                    print("From local")
-                    logo_img = Image.open(image_filepath)
-                domain_favicon_map[parser.domain] = logo_img
-            else:
-                print("From cache")
-                logo_img = domain_favicon_map[parser.domain]
-            print("fetched:", url)
-            fig.add_layout_image(
-                    x=z[0],
-                    sizex=0.1,
-                    y=z[1],
-                    sizey=0.1,
-                    xref="x",
-                    yref="y",
-                    opacity=1,
-                    xanchor="center",
-                    yanchor="middle",
-                    layer="above",
-                    source=logo_img
-            )
+        fig = draw_favicons(fig, Z, csv_df)
+
     fig.update_coloraxes(
         showscale=False
     )
@@ -292,6 +298,7 @@ def make_search_form(style):
             style=dict(width="100%"),
             className="input-control"
         )
+
 
 @app.callback(
     Output('example-graph', 'figure'),
