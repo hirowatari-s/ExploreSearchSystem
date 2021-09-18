@@ -40,14 +40,19 @@ def fetch_gsearch_result(search_str):
     results = response["organic_results"]
 
     site_names = [res["title"] for res in results]
+    num_items = len(site_names)
+    keywords = [search_str] * num_items
     urls = [res["link"] for res in results]
-    snnipets = [res["snippet"] for res in results]
+    snippets = [res["snippet"] for res in results]
+    rankings = list(range(1, num_items+1))
 
-    df = pd.DataFrame(data={
-        "site_name": site_names,
-        "URL": urls,
-        "snippet": snnipets,
-    })
+    df = pd.DataFrame(data=dict(
+        keyword=keywords,
+        site_name=site_names,
+        URL=urls,
+        snippet=snippets,
+        ranking=rankings,
+    ))
     return df
 
 
