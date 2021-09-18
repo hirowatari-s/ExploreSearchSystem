@@ -292,6 +292,7 @@ def make_search_form(style):
             id=form_id,
             type="text",
             placeholder="検索ワードを入力してください",
+            style=dict(width="100%")
         )
 
 @app.callback(
@@ -418,21 +419,36 @@ link_card = dbc.Card([
 
 
 search_component = dbc.Col([
-    dbc.RadioItems(
-        options=[
-            {'label': 'サンプルのデータセット', 'value': 'selection'},
-            {'label': '自由に検索', 'value': 'freedom'},
-        ],
-        value='selection',
-        id="search-style-selector",
-        style={"background-color": "purple"}
+    dbc.Row(
+        dbc.RadioItems(
+            options=[
+                {'label': 'サンプルのデータセット', 'value': 'selection'},
+                {'label': '自由に検索', 'value': 'freedom'},
+            ],
+            value='selection',
+            id="search-style-selector",
+            style={"background-color": "purple"}
+        ),
     ),
-    html.Div(
-        id='search-form-div',
-        children=make_search_form('selection'),
-    ),
-    dbc.Button("検索！", outline=True, id="explore-start", n_clicks=0),
-])
+    dbc.Row([
+        dbc.Col(
+            html.Div(
+                id='search-form-div',
+                children=make_search_form('selection'),
+            ),
+            width=10,
+        ),
+        dbc.Col(
+            dbc.Button(
+                "検索！",
+                outline=True,
+                id="explore-start",
+                n_clicks=0,
+            ),
+            width=2,
+        ),
+    ], align="center")
+], style={"background-color":"blue"})
 
 
 view_options = dbc.Col([
