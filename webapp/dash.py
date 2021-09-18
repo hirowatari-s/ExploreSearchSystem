@@ -7,6 +7,7 @@
 from re import search
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
+from dash_bootstrap_components._components.Select import Select
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
@@ -429,7 +430,11 @@ search_component = dbc.Col([
                 ],
                 value='selection',
                 id="search-style-selector",
-                style={"background-color": "purple", "height":"100%", "margin":"0"},
+                style={
+                    "background-color": "purple",
+                    "height":"100%",
+                    "width":"100%",
+                    "textAligh":"center"},
                 inline=True,
             ),
         ),
@@ -465,25 +470,36 @@ view_options = dbc.Col([
         id="model-selector",
         style={'textAlign': "center", "background-color": "pink", "display": "none"}
     ),
-    dbc.FormGroup([
-        dbc.Checkbox(
-            id="favicon-enabled",
-            checked=False,
+    dbc.Row(
+        dbc.FormGroup([
+            dbc.Checkbox(
+                id="favicon-enabled",
+                checked=False,
+            ),
+            dbc.Label(
+                "ロゴを表示する",
+                html_for="favicon-enabled",
+                className="form-check-label",
+            )],
+            check=True,
+            style=dict(width="100%"),
         ),
-        dbc.Label(
-            "ロゴを表示する",
-            html_for="favicon-enabled",
-            className="form-check-label",
+        style=dict(height="40%"),
+        align="center"
+    ),
+    dbc.Row(
+        dbc.RadioItems(
+            options=[
+                {'label': 'U-matrix 表示', 'value': 'U-matrix'},
+                {'label': 'クラスタ表示', 'value': 'topic'},
+            ],
+            value='U-matrix',
+            id="viewer-selector",
+            inline=True,
+            style={'textAlign': "center", "background-color": "cyan", "width":"100%"},
         ),
-    ], check=True),
-    dbc.RadioItems(
-        options=[
-            {'label': 'U-matrix', 'value': 'U-matrix'},
-            {'label': 'topic', 'value': 'topic'},
-        ],
-        value='U-matrix',
-        id="viewer-selector",
-        style={'textAlign': "center", "background-color": "cyan"}
+        style=dict(height="60%", width="100%"),
+        align="center",
     ),
 ])
 
