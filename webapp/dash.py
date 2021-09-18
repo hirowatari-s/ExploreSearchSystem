@@ -51,10 +51,10 @@ def prepare_materials(keyword, model_name):
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
         print("Fetch data to learn")
-        df = fetch_gsearch_result(keyword)
-        X , labels, df = make_bow(df)
+        csv_df = fetch_gsearch_result(keyword)
+        X , labels, df = make_bow(csv_df)
         rank = np.arange(1, X.shape[0]+1)  # FIXME
-        df.to_csv(keyword+".csv")
+        csv_df.to_csv(keyword+".csv")
         feature_file = 'data/tmp/'+keyword+'.npy'
         label_file = 'data/tmp/'+keyword+'_label.npy'
         np.save(feature_file, X)
