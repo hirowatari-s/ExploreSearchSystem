@@ -4,7 +4,6 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
-from urllib import parse
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
@@ -23,6 +22,7 @@ from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
 from sklearn.decomposition import NMF
 import tldextract
+import pickle
 
 
 PROJECT_ROOT = pathlib.Path('.')
@@ -33,12 +33,24 @@ domain_favicon_map = dict()
 
 
 def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
+    # Learn model
+    nb_epoch = 50
+    resolution = 20
+    u_resolution = 100
+    sigma_max = 2.2
+    sigma_min = 0.3
+    tau = 50
+    latent_dim = 2
+    seed = 1
+
     # Load data
     if keyword in SAMPLE_DATASETS:
+        print("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
         labels = csv_df['site_name']
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
+        print("Fetch data to learn")
         df = fetch_gsearch_result(keyword)
         X , labels, df = make_bow(df)
         df.to_csv(keyword+".csv")
@@ -47,44 +59,49 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
         np.save(feature_file, X)
         np.save(label_file, labels)
 
-    # Learn model
-    nb_epoch = 50
-    resolution = 20
-    sigma_max = 2.2
-    sigma_min = 0.3
-    tau = 50
-    latent_dim = 2
-    seed = 1
+    if pathlib.Path('data/tmp/'+keyword+'_history.pickle').exists():
+        print("Model already learned")
+        with open('data/tmp/'+keyword+'_history.pickle', 'rb') as f:
+            history = pickle.load(f)
+    else:
+        print("Model learning")
+        np.random.seed(seed)
+        mm = MM(
+            X,
+            latent_dim=latent_dim,
+            resolution=resolution,
+            sigma_max=sigma_max,
+            sigma_min=sigma_min,
+            model_name=model_name,
+            tau=tau,
+            init='PCA'
+        )
+        mm.fit(nb_epoch=nb_epoch)
+        history = dict(
+            Z=mm.history['z'][-1],
+            Y=mm.history['y'][-1],
+            sigma=mm.history['sigma'][-1],
+        )
+        print("Learning finished.")
+        with open('data/tmp/'+keyword+'_history.pickle', 'wb') as f:
+            pickle.dump(history, f)
 
-    np.random.seed(seed)
-    mm = MM(
-        X,
-        latent_dim=latent_dim,
-        resolution=resolution,
-        sigma_max=sigma_max,
-        sigma_min=sigma_min,
-        model_name=model_name,
-        tau=tau,
-        init='PCA'
-    )
-    mm.fit(nb_epoch=nb_epoch)
-    print("Learning finished.")
-    Z = mm.history['z'][-1]
+    Z = history['Z']
 
     # Make Visualize
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
-        sigma=mm.history['sigma'][-1],
-        labels=labels, resolution=100, title_text="dammy"
+        sigma=history['sigma'],
+        labels=labels, resolution=u_resolution, title_text="dammy"
     )
-    U_matrix, u_resolution, _ = umatrix.calc_umatrix()
+    U_matrix, _, _ = umatrix.calc_umatrix()
 
     # decomposed by Topic
     n_components = 5
     model_t3 = NMF(n_components=n_components, init='random', random_state=2, max_iter=300,
                            solver='cd')
-    Y =  mm.history['y'][-1, :, :]
+    Y =  history['Y']
     W = model_t3.fit_transform(Y)
     # For mask and normalization(min:0, max->1)
     mask_std = np.zeros(W.shape)
