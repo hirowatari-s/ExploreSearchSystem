@@ -7,6 +7,7 @@
 from re import search
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
+from dash_bootstrap_components._components import Checklist
 from dash_bootstrap_components._components.Select import Select
 import dash_core_components as dcc
 import dash_html_components as html
@@ -309,9 +310,12 @@ def make_search_form(style):
     ],
     [
         State('search-form', 'value'),
-        State('favicon-enabled', 'checked'),
+        State('favicon-enabled', 'value'),
+        State('example-graph', 'figure'),
     ])
-def load_learning(n_clicks, model_name, viewer_name,  keyword, favicon):
+def load_learning(n_clicks, model_name, viewer_name,  keyword, favicon, prev_fig):
+    if not keyword:
+        return prev_fig
     return make_figure(keyword, model_name, favicon, viewer_name)
 
 
@@ -342,7 +346,8 @@ def search_form_callback(style):
     ])
 def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title, prev_snippet):
     if hoverData:
-        if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]):
+        if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]) \
+            or keyword == None:
             link_title = prev_linktext
             url = prev_url
             target = prev_target
@@ -430,10 +435,10 @@ search_component = dbc.Col([
                 value='selection',
                 id="search-style-selector",
                 style={
-                    "background-color": "purple",
                     "height":"100%",
                     "width":"100%",
                     "textAligh":"center"},
+                className="h3",
                 inline=True,
             ),
         ),
@@ -456,35 +461,34 @@ search_component = dbc.Col([
             width=2,
         )],
         align="center")],
-    style={"background-color": "blue", "min-height":"100px"},
+    style={"min-height":"100px"},
     md=12,
     xl=6,
+    className="card",
 )
 
 
 view_options = dbc.Col([
-    dbc.RadioItems(
-        options=[
-            {'label': 'SOM', 'value': 'SOM'},
-            {'label': 'UKR', 'value': 'UKR'},
-        ],
-        value='SOM',
-        id="model-selector",
-        style={'textAlign': "center", "background-color": "pink", "display": "none"}
+    dbc.Row(
+        dbc.RadioItems(
+            options=[
+                {'label': 'SOM', 'value': 'SOM'},
+                {'label': 'UKR', 'value': 'UKR'},
+            ],
+            value='SOM',
+            id="model-selector",
+            style={'textAlign': "center", "display": "none"},
+            className="h3",
+        ),
     ),
     dbc.Row(
-        dbc.FormGroup([
-            dbc.Checkbox(
-                id="favicon-enabled",
-                checked=False,
-            ),
-            dbc.Label(
-                "ロゴを表示する",
-                html_for="favicon-enabled",
-                className="form-check-label",
-            )],
-            check=True,
-            style=dict(width="100%"),
+        dbc.Checklist(
+            id="favicon-enabled",
+            options=[dict(label="ロゴを表示する", value=True)],
+            value=[],
+            className="form-check-label h3",
+            # style=dict(width="100%", textAlign="center"),
+            switch=True,
         ),
         style=dict(height="40%"),
         align="center"
@@ -498,14 +502,16 @@ view_options = dbc.Col([
             value='U-matrix',
             id="viewer-selector",
             inline=True,
-            style={'textAlign': "center", "background-color": "cyan", "width":"100%"},
+            # style={'textAlign': "left", "width":"100%"},
+            className="h3",
         ),
-        style=dict(height="60%", width="100%"),
+        style=dict(height="60%", width="100%", padding="10"),
         align="center",
     )],
     md=12,
     xl=6,
-    style={"min-height":"100px"}
+    style={"min-height":"100px", "padding-left":"30px"},
+    className="card",
 )
 
 
@@ -520,20 +526,20 @@ result_component = dbc.Row(
                 ),
                 id="loading"
             ),
-            style={"height": "100%", "background-color": "blue"},
+            style={"height": "100%",},
             md=12,
-            xl=9
+            xl=9,
+            className="card",
         ),
         dbc.Col(
             link_card,
-            style={"background-color": "yellow"},
             md=12,
             xl=3
         )
     ],
     align="center",
     className="h-75",
-    style={"min-height": "70vh", "background-color": "green"},
+    style={"min-height": "70vh",},
     no_gutters=True
 )
 
@@ -564,7 +570,7 @@ app.layout = dbc.Container(children=[
             md=12,
             xl=6
         )
-    ], style={"background-color":"red", "min-height":"10vh"},
+    ], style={"min-height":"10vh", "margin-top":"10px"},
     align="end"),
     html.Hr(),
     # dbc.Button(
@@ -576,6 +582,6 @@ app.layout = dbc.Container(children=[
         search_component,
         view_options
         ],
-        style={"background-color":"yellow", "min-height":"10vh"}),
+        style={"min-height":"10vh"}),
     result_component,
 ])
