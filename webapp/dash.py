@@ -11,7 +11,7 @@ import dash_html_components as html
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from webapp import app
+from webapp import app, FILE_UPLOAD_PATH
 import requests
 import io
 from PIL import Image
@@ -37,13 +37,13 @@ def prepare_materials(keyword, model_name):
     # Learn model
     nb_epoch = 50
     sigma_max = 2.2
-    sigma_min = 0.3
+    sigma_min = 0.2
     tau = 50
     latent_dim = 2
     seed = 1
 
     # Load data
-    if keyword in SAMPLE_DATASETS:
+    if pathlib.Path(keyword+".csv").exists():
         print("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
         labels = csv_df['site_name']
@@ -51,10 +51,10 @@ def prepare_materials(keyword, model_name):
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
         print("Fetch data to learn")
-        df = fetch_gsearch_result(keyword)
-        X , labels, df = make_bow(df)
+        csv_df = fetch_gsearch_result(keyword)
+        X , labels, df = make_bow(csv_df)
         rank = np.arange(1, X.shape[0]+1)  # FIXME
-        df.to_csv(keyword+".csv")
+        csv_df.to_csv(keyword+".csv")
         feature_file = 'data/tmp/'+keyword+'.npy'
         label_file = 'data/tmp/'+keyword+'_label.npy'
         np.save(feature_file, X)
@@ -228,15 +228,26 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     fig = draw_scatter(fig, Z, labels, rank)
 
     if enable_favicon:
-        for i, z in enumerate(Z):
+        for i, z in enumerate(Z[::-1]):
             url = csv_df['URL'][i]
             parser = tldextract.extract(url)
+            image_filepath = pathlib.Path(FILE_UPLOAD_PATH, parser.domain + '.png')
+            print("image path:", image_filepath.resolve())
             if not parser.domain in domain_favicon_map:
-                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
-                res = requests.get(favicon_url)
-                domain_favicon_map[parser.domain] = Image.open(io.BytesIO(res.content))
-            logo_img = domain_favicon_map[parser.domain]
-            print("fetch:", url)
+                if not image_filepath.exists():
+                    print("From API")
+                    favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
+                    res = requests.get(favicon_url)
+                    logo_img = Image.open(io.BytesIO(res.content))
+                    logo_img.save(image_filepath)
+                else:
+                    print("From local")
+                    logo_img = Image.open(image_filepath)
+                domain_favicon_map[parser.domain] = logo_img
+            else:
+                print("From cache")
+                logo_img = domain_favicon_map[parser.domain]
+            print("fetched:", url)
             fig.add_layout_image(
                     x=z[0],
                     sizex=0.1,
@@ -244,7 +255,7 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
                     sizey=0.1,
                     xref="x",
                     yref="y",
-                    opacity=0.5,
+                    opacity=1,
                     xanchor="center",
                     yanchor="middle",
                     layer="above",
