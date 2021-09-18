@@ -109,7 +109,7 @@ def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
             y=np.linspace(-1, 1, u_resolution),
             z=U_matrix.reshape(u_resolution, u_resolution),
             name='contour',
-            colorscale="Greens",
+            colorscale="gnbu",
             hoverinfo='skip',
             showscale=False,
         )
