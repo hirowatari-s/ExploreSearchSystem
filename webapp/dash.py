@@ -4,18 +4,16 @@
 # visit http://127.0.0.1:8050/ in your web browser.
 
 
-from re import search
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
-from dash_bootstrap_components._components import Checklist
-from dash_bootstrap_components._components.Select import Select
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from webapp import app, FILE_UPLOAD_PATH
+from webapp import app, FILE_UPLOAD_PATH, DEFAULT_FAVICON_PATH
 import requests
+from requests.exceptions import Timeout
 import io
 from PIL import Image
 from Grad_norm import Grad_Norm
@@ -193,8 +191,13 @@ def draw_favicons(fig, Z, csv_df):
             if not image_filepath.exists():
                 print("From API")
                 favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
-                res = requests.get(favicon_url)
-                logo_img = Image.open(io.BytesIO(res.content))
+                try:
+                    res = requests.get(favicon_url, timeout=2)
+                    logo_img = Image.open(io.BytesIO(res.content))
+                except Timeout:
+                    print("Default")
+                    logo_img = Image.open(DEFAULT_FAVICON_PATH)
+
                 logo_img.save(image_filepath)
             else:
                 print("From local")
@@ -217,6 +220,7 @@ def draw_favicons(fig, Z, csv_df):
                 layer="above",
                 source=logo_img
         )
+    print("!!! Favicon finish !!!")
     return fig
 
 
@@ -307,13 +311,13 @@ def make_search_form(style):
         Input('explore-start', 'n_clicks'),
         Input('model-selector', 'value'),
         Input('viewer-selector', 'value'),
+        Input('favicon-enabled', 'value'),
     ],
     [
         State('search-form', 'value'),
-        State('favicon-enabled', 'value'),
         State('example-graph', 'figure'),
     ])
-def load_learning(n_clicks, model_name, viewer_name,  keyword, favicon, prev_fig):
+def load_learning(n_clicks, model_name, viewer_name,  favicon, keyword, prev_fig):
     if not keyword:
         return prev_fig
     return make_figure(keyword, model_name, favicon, viewer_name)
@@ -452,11 +456,10 @@ search_component = dbc.Col([
             width=10,
         ),
         dbc.Col(
-            dbc.Button(
-                "検索！",
-                outline=True,
-                id="explore-start",
-                n_clicks=0,
+            html.Div(
+                id='explore-start',
+                children="検索！",
+                className="btn btn-primary btn-lg",
             ),
             width=2,
         )],
