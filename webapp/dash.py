@@ -452,11 +452,10 @@ search_component = dbc.Col([
             width=10,
         ),
         dbc.Col(
-            dbc.Button(
-                "検索！",
-                outline=True,
-                id="explore-start",
-                n_clicks=0,
+            html.Div(
+                id='explore-start',
+                children="検索！",
+                className="btn btn-primary btn-lg",
             ),
             width=2,
         )],
