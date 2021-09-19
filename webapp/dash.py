@@ -307,13 +307,13 @@ def make_search_form(style):
         Input('explore-start', 'n_clicks'),
         Input('model-selector', 'value'),
         Input('viewer-selector', 'value'),
+        Input('favicon-enabled', 'value'),
     ],
     [
         State('search-form', 'value'),
-        State('favicon-enabled', 'value'),
         State('example-graph', 'figure'),
     ])
-def load_learning(n_clicks, model_name, viewer_name,  keyword, favicon, prev_fig):
+def load_learning(n_clicks, model_name, viewer_name,  favicon, keyword, prev_fig):
     if not keyword:
         return prev_fig
     return make_figure(keyword, model_name, favicon, viewer_name)
