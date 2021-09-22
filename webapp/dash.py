@@ -92,7 +92,7 @@ def prepare_materials(keyword, model_name):
 
 
 def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
-    print(X.shape, Z.shape)
+    # print(X.shape, Z.shape)
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
@@ -301,6 +301,7 @@ def make_search_form(style):
             type="text",
             placeholder="検索ワードを入力してください",
             style=dict(width="100%"),
+            disabled = True,
             className="input-control"
         )
 
@@ -387,7 +388,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
 app.clientside_callback(
     "onLatentClicked",
     Output('explore-start', 'outline'),
-    Input('example-graph', 'clickData'))
+    Input('example-graph', 'clickData'), prevent_initial_call=True)
 
 
 # モーダルの Toggler
@@ -410,7 +411,7 @@ umatrix_modal = dbc.Modal([
 
 freedom_modal = dbc.Modal([
                 dbc.ModalHeader("API Information"),
-                dbc.ModalBody("現在APIの呼び出し制限回数を超えています．サンプルデータセットでお楽しみください．"),
+                dbc.ModalBody("現在APIの呼び出し制限回数を超えています．サンプルデータセットでお楽しみください． \U0001f647"),
                 dbc.ModalFooter(
                     dbc.Button(
                         "Close", id="close", className="ml-auto", n_clicks=0
