@@ -317,18 +317,27 @@ def make_search_form(style):
         State('search-form', 'value'),
         State('example-graph', 'figure'),
     ])
-def load_learning(n_clicks, model_name, viewer_name,  favicon, keyword, prev_fig):
+def load_learning(n_clicks, model_name, viewer_name, favicon, keyword, prev_fig):
     if not keyword:
         return prev_fig
     return make_figure(keyword, model_name, favicon, viewer_name)
 
+@app.callback(
+    Output("modal", "is_open"),
+    [Input("search-style-selector", "value"), Input("close", "n_clicks")],
+    [State("modal", "is_open")],
+)
+def toggle_modal(n1, n2, is_open):
+    switch = True if n1 == "freedom" else False
+    if switch:
+        return not is_open
+    return is_open
 
 @app.callback(
     Output('search-form-div', 'children'),
     Input('search-style-selector', 'value'))
 def search_form_callback(style):
-    return make_search_form(style)
-
+    return make_search_form(style) 
 
 @app.callback([
         Output('link', 'children'),
@@ -399,6 +408,18 @@ umatrix_modal = dbc.Modal([
     ),
 ], id="umatrix-modal", is_open=False, centered=True)
 
+freedom_modal = dbc.Modal([
+                dbc.ModalHeader("API Information"),
+                dbc.ModalBody("現在APIの呼び出し制限回数を超えています．サンプルデータセットでお楽しみください．"),
+                dbc.ModalFooter(
+                    dbc.Button(
+                        "Close", id="close", className="ml-auto", n_clicks=0
+                    )
+                ),
+            ],
+            id="modal",
+            is_open=False,
+)
 
 app.callback(
     Output('umatrix-modal', 'is_open'),
@@ -448,7 +469,7 @@ search_component = dbc.Col([
         ),
         style=dict(height="40%"),
         align="center"
-    ),
+    ), 
     dbc.Row([
         dbc.Col(
             id='search-form-div',
@@ -469,7 +490,6 @@ search_component = dbc.Col([
     xl=6,
     className="card",
 )
-
 
 view_options = dbc.Col([
     dbc.Row(
@@ -580,7 +600,7 @@ app.layout = dbc.Container(children=[
     #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
     # ),
     umatrix_modal,
-
+    freedom_modal,
     dbc.Row([
         search_component,
         view_options
