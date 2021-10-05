@@ -19,7 +19,6 @@ from PIL import Image
 from Grad_norm import Grad_Norm
 from som import ManifoldModeling as MM
 import pathlib
-from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
 from sklearn.decomposition import NMF
 import tldextract
@@ -51,15 +50,7 @@ def prepare_materials(keyword, model_name):
         rank = csv_df['ranking']
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
-        print("Fetch data to learn")
-        csv_df = fetch_gsearch_result(keyword)
-        X , labels, _ = make_bow(csv_df)
-        rank = np.arange(1, X.shape[0]+1)  # FIXME
-        csv_df.to_csv(keyword+".csv")
-        feature_file = 'data/tmp/'+keyword+'.npy'
-        label_file = 'data/tmp/'+keyword+'_label.npy'
-        np.save(feature_file, X)
-        np.save(label_file, labels)
+        pass
 
     model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
     if pathlib.Path(model_save_path).exists():
@@ -338,7 +329,7 @@ def toggle_modal(n1, n2, is_open):
     Output('search-form-div', 'children'),
     Input('search-style-selector', 'value'))
 def search_form_callback(style):
-    return make_search_form(style) 
+    return make_search_form(style)
 
 @app.callback([
         Output('link', 'children'),
@@ -470,7 +461,7 @@ search_component = dbc.Col([
         ),
         style=dict(height="40%"),
         align="center"
-    ), 
+    ),
     dbc.Row([
         dbc.Col(
             id='search-form-div',
