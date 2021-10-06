@@ -19,6 +19,7 @@ from PIL import Image
 from Grad_norm import Grad_Norm
 from som import ManifoldModeling as MM
 import pathlib
+from fetch_arxiv import fetch_search_result
 from make_BoW import make_bow
 from sklearn.decomposition import NMF
 import tldextract
@@ -50,7 +51,16 @@ def prepare_materials(keyword, model_name):
         rank = csv_df['ranking']
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
-        pass
+        print("Fetch data to learn")
+        csv_df = fetch_search_result(keyword)
+        X , labels, _ = make_bow(csv_df)
+        rank = np.arange(1, X.shape[0]+1)  # FIXME
+        csv_df.to_csv(keyword+".csv")
+        feature_file = 'data/tmp/'+keyword+'.npy'
+        label_file = 'data/tmp/'+keyword+'_label.npy'
+        np.save(feature_file, X)
+        np.save(label_file, labels)
+
 
     model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
     if pathlib.Path(model_save_path).exists():
@@ -292,7 +302,6 @@ def make_search_form(style):
             type="text",
             placeholder="検索ワードを入力してください",
             style=dict(width="100%"),
-            disabled = True,
             className="input-control"
         )
 
@@ -314,16 +323,6 @@ def load_learning(n_clicks, model_name, viewer_name, favicon, keyword, prev_fig)
         return prev_fig
     return make_figure(keyword, model_name, favicon, viewer_name)
 
-@app.callback(
-    Output("modal", "is_open"),
-    [Input("search-style-selector", "value"), Input("close", "n_clicks")],
-    [State("modal", "is_open")],
-)
-def toggle_modal(n1, n2, is_open):
-    switch = True if n1 == "freedom" else False
-    if switch:
-        return not is_open
-    return is_open
 
 @app.callback(
     Output('search-form-div', 'children'),
@@ -400,18 +399,6 @@ umatrix_modal = dbc.Modal([
     ),
 ], id="umatrix-modal", is_open=False, centered=True)
 
-freedom_modal = dbc.Modal([
-                dbc.ModalHeader("API Information"),
-                dbc.ModalBody("現在APIの呼び出し制限回数を超えています．サンプルデータセットでお楽しみください． \U0001f647"),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close", id="close", className="ml-auto", n_clicks=0
-                    )
-                ),
-            ],
-            id="modal",
-            is_open=False,
-)
 
 app.callback(
     Output('umatrix-modal', 'is_open'),
@@ -592,7 +579,6 @@ app.layout = dbc.Container(children=[
     #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
     # ),
     umatrix_modal,
-    freedom_modal,
     dbc.Row([
         search_component,
         view_options
