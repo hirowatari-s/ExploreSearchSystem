@@ -9,6 +9,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 from webapp import app, FILE_UPLOAD_PATH, DEFAULT_FAVICON_PATH
@@ -177,6 +178,26 @@ def draw_scatter(fig, Z, labels, rank):
                 bgcolor="rgba(255, 255, 255, 0.75)",
             ),
         )
+        , row=1, col=1
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=Z[:, 0],
+            y=Z[:, 1],
+            mode="markers",
+            name='lv',
+            marker=dict(
+                size=rank[::-1],
+                sizemode='area',
+                sizeref=2. * max(rank) / (40. ** 2),
+                sizemin=4,
+            ),
+            text=labels,
+            hoverlabel=dict(
+                bgcolor="rgba(255, 255, 255, 0.75)",
+            ),
+        )
+        , row=1, col=2
     )
     return fig
 
@@ -229,7 +250,7 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     Z, Y, sigma = history['Z'], history['Y'], history['sigma']
 
     # Build figure
-    fig = go.Figure(
+    init_fig = go.Figure(
         layout=go.Layout(
             xaxis=dict(
                 range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
@@ -252,6 +273,11 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
             ),
         ),
     )
+    
+    fig = make_subplots(rows=1, cols=2, figure=init_fig)
+    # fig = make_subplots(rows=1, cols=2)
+    # fig.add_trace(init_fig, row=1, col=1)
+    # fig.add_trace(init_fig, row=1, col=2)
 
     if viewer_name=="topic":
         n_components = 5
