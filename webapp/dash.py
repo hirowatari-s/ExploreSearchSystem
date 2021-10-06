@@ -413,7 +413,7 @@ result_component = dbc.Row(
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph',
-                    figure=make_figure("ファッション", "SOM"),
+                    figure=make_figure("Machine Learning", "SOM"),
                     config=dict(displayModeBar=False)
                 ),
                 id="loading"
