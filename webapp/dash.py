@@ -11,18 +11,13 @@ import dash_html_components as html
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
-from webapp import app, FILE_UPLOAD_PATH, DEFAULT_FAVICON_PATH
-import requests
-from requests.exceptions import Timeout
-import io
-from PIL import Image
+from webapp import app
 from Grad_norm import Grad_Norm
 from som import ManifoldModeling as MM
 import pathlib
 from fetch_arxiv import fetch_search_result
 from make_BoW import make_bow
 from sklearn.decomposition import NMF
-import tldextract
 import pickle
 
 
@@ -30,7 +25,6 @@ PROJECT_ROOT = pathlib.Path('.')
 SAMPLE_DATASETS = [
     csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
 ]
-domain_favicon_map = dict()
 resolution = 20
 
 
@@ -182,50 +176,7 @@ def draw_scatter(fig, Z, labels, rank):
     return fig
 
 
-def draw_favicons(fig, Z, csv_df):
-    for i, z in enumerate(Z[::-1]):
-        url = csv_df['URL'][i]
-        parser = tldextract.extract(url)
-        image_filepath = pathlib.Path(FILE_UPLOAD_PATH, parser.domain + '.png')
-        print("image path:", image_filepath.resolve())
-        if not parser.domain in domain_favicon_map:
-            if not image_filepath.exists():
-                print("From API")
-                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
-                try:
-                    res = requests.get(favicon_url, timeout=2)
-                    logo_img = Image.open(io.BytesIO(res.content))
-                except Timeout:
-                    print("Default")
-                    logo_img = Image.open(DEFAULT_FAVICON_PATH)
-
-                logo_img.save(image_filepath)
-            else:
-                print("From local")
-                logo_img = Image.open(image_filepath)
-            domain_favicon_map[parser.domain] = logo_img
-        else:
-            print("From cache")
-            logo_img = domain_favicon_map[parser.domain]
-        print("fetched:", url)
-        fig.add_layout_image(
-                x=z[0],
-                sizex=0.1,
-                y=z[1],
-                sizey=0.1,
-                xref="x",
-                yref="y",
-                opacity=1,
-                xanchor="center",
-                yanchor="middle",
-                layer="above",
-                source=logo_img
-        )
-    print("!!! Favicon finish !!!")
-    return fig
-
-
-def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
+def make_figure(keyword, model_name, viewer_name="U_matrix"):
     csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
     Z, Y, sigma = history['Z'], history['Y'], history['sigma']
 
@@ -262,9 +213,6 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
         fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
     fig = draw_scatter(fig, Z, labels, rank)
-
-    if enable_favicon:
-        fig = draw_favicons(fig, Z, csv_df)
 
     fig.update_coloraxes(
         showscale=False
@@ -312,16 +260,15 @@ def make_search_form(style):
         Input('explore-start', 'n_clicks'),
         Input('model-selector', 'value'),
         Input('viewer-selector', 'value'),
-        Input('favicon-enabled', 'value'),
     ],
     [
         State('search-form', 'value'),
         State('example-graph', 'figure'),
     ])
-def load_learning(n_clicks, model_name, viewer_name, favicon, keyword, prev_fig):
+def load_learning(n_clicks, model_name, viewer_name, keyword, prev_fig):
     if not keyword:
         return prev_fig
-    return make_figure(keyword, model_name, favicon, viewer_name)
+    return make_figure(keyword, model_name, viewer_name)
 
 
 @app.callback(
@@ -372,7 +319,7 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
         target = "_self"
         page_title = ""
         snippet = ""
-    return link_title, url, target, page_title, snippet #, favicon_url
+    return link_title, url, target, page_title, snippet
 
 
 app.clientside_callback(
@@ -482,18 +429,6 @@ view_options = dbc.Col([
             style={'textAlign': "center", "display": "none"},
             className="h3",
         ),
-    ),
-    dbc.Row(
-        dbc.Checklist(
-            id="favicon-enabled",
-            options=[dict(label="ロゴを表示する", value=True)],
-            value=[],
-            className="form-check-label h3",
-            # style=dict(width="100%", textAlign="center"),
-            switch=True,
-        ),
-        style=dict(height="40%"),
-        align="center"
     ),
     dbc.Row(
         dbc.RadioItems(
