@@ -21,10 +21,6 @@ from sklearn.decomposition import NMF
 import pickle
 
 
-PROJECT_ROOT = pathlib.Path('.')
-SAMPLE_DATASETS = [
-    csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
-]
 resolution = 20
 
 
@@ -234,26 +230,6 @@ def make_figure(keyword, model_name, viewer_name="U_matrix"):
     return fig
 
 
-def make_search_form(style):
-    form_id = 'search-form'
-    if style == 'selection':
-        return dbc.Select(
-            id=form_id,
-            options=[
-                {'label': name, 'value': name} for name in SAMPLE_DATASETS
-            ],
-            value='ペット'
-        )
-    else:
-        return dcc.Input(
-            id=form_id,
-            type="text",
-            placeholder="検索ワードを入力してください",
-            style=dict(width="100%"),
-            className="input-control"
-        )
-
-
 @app.callback(
     Output('example-graph', 'figure'),
     [
@@ -270,12 +246,6 @@ def load_learning(n_clicks, model_name, viewer_name, keyword, prev_fig):
         return prev_fig
     return make_figure(keyword, model_name, viewer_name)
 
-
-@app.callback(
-    Output('search-form-div', 'children'),
-    Input('search-style-selector', 'value'))
-def search_form_callback(style):
-    return make_search_form(style)
 
 @app.callback([
         Output('link', 'children'),
@@ -376,30 +346,15 @@ link_card = dbc.Card([
 
 
 search_component = dbc.Col([
-    dbc.Row(
-        dbc.Col(
-            dbc.RadioItems(
-                options=[
-                    {'label': 'サンプルのデータセット', 'value': 'selection'},
-                    {'label': '自由に検索', 'value': 'freedom'},
-                ],
-                value='selection',
-                id="search-style-selector",
-                style={
-                    "height":"100%",
-                    "width":"100%",
-                    "textAligh":"center"},
-                className="h3",
-                inline=True,
-            ),
-        ),
-        style=dict(height="40%"),
-        align="center"
-    ),
     dbc.Row([
         dbc.Col(
             id='search-form-div',
-            children=make_search_form('selection'),
+            children=dcc.Input(
+                id='search-form',
+                type="text",
+                placeholder="検索ワードを入力してください",
+                style=dict(width="100%"),
+                className="input-control"),
             width=10,
         ),
         dbc.Col(
