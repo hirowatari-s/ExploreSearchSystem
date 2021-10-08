@@ -906,14 +906,6 @@ six = "*"
 tenacity = ">=6.2.0"
 
 [[package]]
-name = "polyglot"
-version = "16.7.4"
-description = "Polyglot is a natural language pipeline that supports massive multilingual applications."
-category = "main"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "prometheus-client"
 version = "0.11.0"
 description = "Python client for the Prometheus monitoring system."
@@ -1306,7 +1298,7 @@ watchdog = ["watchdog"]
 [metadata]
 lock-version = "1.1"
 python-versions = "~3.8.11"
-content-hash = "3df02a41a1e95ef673f26592b7c3502df41da6563abec57557f3afe240a65978"
+content-hash = "2da1033304d7b02feefd1153ae31bb6c051bfcf466015d09ebe87e3a99e38ac7"
 
 [metadata.files]
 anyio = [
@@ -1932,9 +1924,6 @@ pillow = [
 plotly = [
     {file = "plotly-5.3.0-py2.py3-none-any.whl", hash = "sha256:70bb0aa3920ac8d2b237361c3536b3b6a86fb722e893eaf4806591b22065e27f"},
     {file = "plotly-5.3.0.tar.gz", hash = "sha256:b6dc306c56e7d5fa7d017718894099b27290b427abf4acad8e5b77fdc3bd32ec"},
-]
-polyglot = [
-    {file = "polyglot-16.7.4.tar.gz", hash = "sha256:f7d9cca9a212622548e9416fb89f1238b994b8860ef49e03b7c82c67f9b6269b"},
 ]
 prometheus-client = [
     {file = "prometheus_client-0.11.0-py2.py3-none-any.whl", hash = "sha256:b014bc76815eb1399da8ce5fc84b7717a3e63652b0c0f8804092c9363acab1b2"},
