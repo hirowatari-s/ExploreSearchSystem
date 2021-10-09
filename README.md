@@ -1,5 +1,8 @@
 # [ExploreSearchSystem](https://explore-search-system.herokuapp.com/)
-技育展
+技育展 AI・機械学習部門 登壇作品
+## [サービスURL](https://explore-search-system.herokuapp.com/)
+## [発表資料URL](https://docs.google.com/presentation/d/11fRHM9cD_CFp_H_3jDkTmYNkmZoq9Ek1DfrkrbNpIFk/edit?usp=sharing)
+
 
 # Tmp Info
 - [使用するアルゴリズム](http://www.brain.kyutech.ac.jp/~furukawa/tsom-j/)
