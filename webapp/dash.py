@@ -18,7 +18,7 @@ from requests.exceptions import Timeout
 import io
 from PIL import Image
 from Grad_norm import Grad_Norm
-from som import ManifoldModeling as MM
+from tsom import ManifoldModeling as MM
 import pathlib
 from scraperbox import fetch_gsearch_result
 from make_BoW import make_bow
@@ -78,11 +78,12 @@ def prepare_materials(keyword, model_name):
             sigma_min=sigma_min,
             model_name=model_name,
             tau=tau,
-            init='PCA'
+            # init='PCA'
         )
         mm.fit(nb_epoch=nb_epoch)
         history = dict(
-            Z=mm.history['z'][-1],
+            Z1=mm.history['z1'][-1],
+            Z2=mm.history['z2'][-1],
             Y=mm.history['y'][-1],
             sigma=mm.history['sigma'][-1],
         )
@@ -178,27 +179,25 @@ def draw_scatter(fig, Z, labels, rank):
                 bgcolor="rgba(255, 255, 255, 0.75)",
             ),
         )
-        , row=1, col=1
     )
-    fig.add_trace(
-        go.Scatter(
-            x=Z[:, 0],
-            y=Z[:, 1],
-            mode="markers",
-            name='lv',
-            marker=dict(
-                size=rank[::-1],
-                sizemode='area',
-                sizeref=2. * max(rank) / (40. ** 2),
-                sizemin=4,
-            ),
-            text=labels,
-            hoverlabel=dict(
-                bgcolor="rgba(255, 255, 255, 0.75)",
-            ),
-        )
-        , row=1, col=2
-    )
+    # fig.add_trace(
+    #     go.Scatter(
+    #         x=Z[:, 0],
+    #         y=Z[:, 1],
+    #         mode="markers",
+    #         name='lv',
+    #         marker=dict(
+    #             size=rank[::-1],
+    #             sizemode='area',
+    #             sizeref=2. * max(rank) / (40. ** 2),
+    #             sizemin=4,
+    #         ),
+    #         text=labels,
+    #         hoverlabel=dict(
+    #             bgcolor="rgba(255, 255, 255, 0.75)",
+    #         ),
+    #     )
+    # )
     return fig
 
 
@@ -247,10 +246,10 @@ def draw_favicons(fig, Z, csv_df):
 
 def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
     csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
-    Z, Y, sigma = history['Z'], history['Y'], history['sigma']
+    Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
 
     # Build figure
-    init_fig = go.Figure(
+    fig = go.Figure(
         layout=go.Layout(
             xaxis=dict(
                 range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
@@ -273,11 +272,6 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
             ),
         ),
     )
-    
-    fig = make_subplots(rows=1, cols=2, figure=init_fig)
-    # fig = make_subplots(rows=1, cols=2)
-    # fig.add_trace(init_fig, row=1, col=1)
-    # fig.add_trace(init_fig, row=1, col=2)
 
     if viewer_name=="topic":
         n_components = 5
@@ -309,6 +303,68 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     )
 
     return fig
+
+def make_figure2(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
+    csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
+    Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
+
+    # Build figure
+    fig = go.Figure(
+        layout=go.Layout(
+            xaxis=dict(
+                range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
+                visible=False,
+                autorange=True,
+            ),
+            yaxis=dict(
+                range=[Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
+                visible=False,
+                scaleanchor='x',
+                scaleratio=1.0,
+            ),
+            showlegend=False,
+            autosize=True,
+            margin=dict(
+                b=0,
+                t=0,
+                l=0,
+                r=0,
+            ),
+        ),
+    )
+
+    if viewer_name=="topic":
+        n_components = 5
+        fig = draw_topics(fig, Y, n_components)
+    else:
+        u_resolution = 100
+        fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
+
+    fig = draw_scatter(fig, Z, labels, rank)
+
+    if enable_favicon:
+        fig = draw_favicons(fig, Z, csv_df)
+
+    fig.update_coloraxes(
+        showscale=False
+    )
+    fig.update_layout(
+        plot_bgcolor="white",
+    )
+    fig.update(
+        layout_coloraxis_showscale=False,
+        layout_showlegend=False,
+    )
+    fig.update_yaxes(
+        fixedrange=True,
+    )
+    fig.update_xaxes(
+        fixedrange=True,
+    )
+
+    return fig
+
+
 
 
 def make_search_form(style):
@@ -571,10 +627,24 @@ result_component = dbc.Row(
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph',
-                    figure=make_figure("ファッション", "SOM"),
+                    figure=make_figure("ファッション", "TSOM"),
                     config=dict(displayModeBar=False)
                 ),
                 id="loading"
+            ),
+            style={"height": "100%",},
+            md=12,
+            xl=9,
+            className="card",
+        ),
+        dbc.Col(
+            dcc.Loading(
+                dcc.Graph(
+                    id='example-graph2',
+                    figure=make_figure2("ファッション", "TSOM"),
+                    config=dict(displayModeBar=False)
+                ),
+                id="loading2"
             ),
             style={"height": "100%",},
             md=12,

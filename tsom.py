@@ -5,7 +5,7 @@ from sklearn.decomposition import PCA
 
 
 class ManifoldModeling:
-    def __init__(self, X, latent_dim, resolution, SIGMA_MAX, SIGMA_MIN, TAU, model_name, model=None, gamma=None, init='random'):
+    def __init__(self, X, latent_dim, resolution, sigma_max, sigma_min, tau, model_name, model=None, gamma=None, init='random'):
 
         # 入力データXについて
         if X.ndim == 2:
@@ -59,34 +59,34 @@ class ManifoldModeling:
             raise ValueError("invalid model: {}\nmodel is only direct or indirect. ".format(model))
 
         # 最大近傍半径(SIGMAX)の設定
-        if type(SIGMA_MAX) is float:
-            self.SIGMA1_MAX = SIGMA_MAX
-            self.SIGMA2_MAX = SIGMA_MAX
-        elif isinstance(SIGMA_MAX, (list, tuple)):
-            self.SIGMA1_MAX = SIGMA_MAX[0]
-            self.SIGMA2_MAX = SIGMA_MAX[1]
+        if type(sigma_max) is float:
+            self.SIGMA1_MAX = sigma_max
+            self.SIGMA2_MAX = sigma_max
+        elif isinstance(sigma_max, (list, tuple)):
+            self.SIGMA1_MAX = sigma_max[0]
+            self.SIGMA2_MAX = sigma_max[1]
         else:
-            raise ValueError("invalid SIGMA_MAX: {}".format(SIGMA_MAX))
+            raise ValueError("invalid sigma_max: {}".format(sigma_max))
 
-        # 最小近傍半径(SIGMA_MIN)の設定
-        if type(SIGMA_MIN) is float:
-            self.SIGMA1_MIN = SIGMA_MIN
-            self.SIGMA2_MIN = SIGMA_MIN
-        elif isinstance(SIGMA_MIN, (list, tuple)):
-            self.SIGMA1_MIN = SIGMA_MIN[0]
-            self.SIGMA2_MIN = SIGMA_MIN[1]
+        # 最小近傍半径(sigma_min)の設定
+        if type(sigma_min) is float:
+            self.SIGMA1_MIN = sigma_min
+            self.SIGMA2_MIN = sigma_min
+        elif isinstance(sigma_min, (list, tuple)):
+            self.SIGMA1_MIN = sigma_min[0]
+            self.SIGMA2_MIN = sigma_min[1]
         else:
-            raise ValueError("invalid SIGMA_MIN: {}".format(SIGMA_MIN))
+            raise ValueError("invalid sigma_min: {}".format(sigma_min))
 
-        # 時定数(TAU)の設定
-        if type(TAU) is int:
-            self.TAU1 = TAU
-            self.TAU2 = TAU
-        elif isinstance(TAU, (list, tuple)):
-            self.TAU1 = TAU[0]
-            self.TAU2 = TAU[1]
+        # 時定数(tau)の設定
+        if type(tau) is int:
+            self.tau1 = tau
+            self.tau2 = tau
+        elif isinstance(tau, (list, tuple)):
+            self.tau1 = tau[0]
+            self.tau2 = tau[1]
         else:
-            raise ValueError("invalid TAU: {}".format(TAU))
+            raise ValueError("invalid tau: {}".format(tau))
 
         # 潜在空間の設定
         resolution1 = resolution
@@ -126,18 +126,19 @@ class ManifoldModeling:
         self.history['z2'] = np.zeros((nb_epoch, self.N2, self.latent_dim2))
         self.history['sigma1'] = np.zeros(nb_epoch)
         self.history['sigma2'] = np.zeros(nb_epoch)
+        self.history['sigma'] = np.zeros(nb_epoch)
 
-        for epoch in range(np.arange(nb_epoch)):
+        for epoch in range(nb_epoch):
             # 学習量の決定
-            # sigma1 = self.SIGMA1_MIN + (self.SIGMA1_MAX - self.SIGMA1_MIN) * np.exp(-epoch / self.TAU1)
-            sigma1 = max(self.SIGMA1_MIN, self.SIGMA1_MIN + (self.SIGMA1_MAX - self.SIGMA1_MIN) * (1 - (epoch / self.TAU1)))
+            # sigma1 = self.SIGMA1_MIN + (self.SIGMA1_MAX - self.SIGMA1_MIN) * np.exp(-epoch / self.tau1)
+            sigma1 = max(self.SIGMA1_MIN, self.SIGMA1_MIN + (self.SIGMA1_MAX - self.SIGMA1_MIN) * (1 - (epoch / self.tau1)))
             distance1 = dist.cdist(self.Zeta1, self.Z1, 'sqeuclidean')  # 距離行列をつくるDはN*K行列
             H1 = np.exp(-distance1 / (2 * pow(sigma1, 2)))  # かっこに気を付ける
             G1 = np.sum(H1, axis=1)  # Gは行ごとの和をとったベクトル
             R1 = (H1.T / G1).T  # 行列の計算なので.Tで転置を行う
 
-            # sigma2 = self.SIGMA2_MIN + (self.SIGMA2_MAX - self.SIGMA2_MIN) * np.exp(-epoch / self.TAU2)
-            sigma2 = max(self.SIGMA2_MIN, self.SIGMA2_MIN + (self.SIGMA2_MAX - self.SIGMA2_MIN) * (1 - (epoch / self.TAU2)))
+            # sigma2 = self.SIGMA2_MIN + (self.SIGMA2_MAX - self.SIGMA2_MIN) * np.exp(-epoch / self.tau2)
+            sigma2 = max(self.SIGMA2_MIN, self.SIGMA2_MIN + (self.SIGMA2_MAX - self.SIGMA2_MIN) * (1 - (epoch / self.tau2)))
             distance2 = dist.cdist(self.Zeta2, self.Z2, 'sqeuclidean')  # 距離行列をつくるDはN*K行列
             H2 = np.exp(-distance2 / (2 * pow(sigma2, 2)))  # かっこに気を付ける
             G2 = np.sum(H2, axis=1)  # Gは行ごとの和をとったベクトル
@@ -201,3 +202,4 @@ class ManifoldModeling:
             self.history['z2'][epoch, :] = self.Z2
             self.history['sigma1'][epoch] = sigma1
             self.history['sigma2'][epoch] = sigma2
+            self.history['sigma'][epoch] = sigma2
