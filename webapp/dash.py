@@ -1,15 +1,10 @@
 # -*- coding: utf-8 -*-
 
-# Run this app with `python app.py` and
-# visit http://127.0.0.1:8050/ in your web browser.
-
-
 from dash.dependencies import Input, Output, State
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
 from webapp import app
@@ -88,7 +83,6 @@ def prepare_materials(keyword, model_name):
 
 
 def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
-    # print(X.shape, Z.shape)
     umatrix = Grad_Norm(
         X=X,
         Z=Z,
@@ -155,8 +149,6 @@ def draw_topics(fig, Y, n_components):
     return fig
 
 def draw_ccp(fig, Y, Zeta, resolution, clickedData, viewer_id):
-    # print(X.shape, Z.shape)
-    # clicked_z_id
     print('ccp')
     if viewer_id == 'viewer_1':
         # viewer_1 ってことはviewer_2をクリックした．
@@ -216,7 +208,7 @@ def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, cli
         Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
     else:
         print("Set viewer_id")
-    
+
     # Build figure
     fig = go.Figure(
         layout=go.Layout(
@@ -249,6 +241,7 @@ def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, cli
         fig = draw_ccp(fig, Y, history['Zeta'], history['resolution'], clicked_z, viewer_id)
     else:
         print("U-matrix not implemented")
+        NotImplemented
         # u_resolution = 100
         # fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
@@ -295,14 +288,11 @@ def load_learning(n_clicks, model_name, viewer_name, clickData, keyword, prev_fi
     if not keyword:
         keyword = "Machine Learning"
 
-    if clickData:
-        if not ("points" in clickData and "pointIndex" in clickData["points"][0]):
-            pass
-        else:
-            print("clicked_from_map2")
-            # index = clickData['points'][0]['pointIndex']
-            return make_figure(keyword, model_name, "CCP", "viewer_1", clickData)
-    
+    if clickData and "points" in clickData and "pointIndex" in clickData["points"][0]:
+        print("clicked_from_map2")
+        # index = clickData['points'][0]['pointIndex']
+        return make_figure(keyword, model_name, "CCP", "viewer_1", clickData)
+
     # return make_figure(keyword, model_name, "viewer_1", viewer_name)
     return make_figure(keyword, model_name, viewer_name, "viewer_1", None)
 
@@ -330,7 +320,7 @@ def load_learning(n_clicks, model_name, viewer_name, clickData, keyword, prev_fi
         else:
             print("clicked_from_map1")
             return make_figure(keyword, model_name, "CCP", "viewer_2", clickData)
-    
+
     # return make_figure(keyword, model_name, "viewer_1", viewer_name)
     return make_figure(keyword, model_name, viewer_name, "viewer_2", None)
 
@@ -482,7 +472,6 @@ view_options = dbc.Col([
             value='U-matrix',
             id="viewer-selector",
             inline=True,
-            # style={'textAlign': "left", "width":"100%"},
             className="h3",
         ),
         style=dict(height="60%", width="100%", padding="10"),
