@@ -154,18 +154,15 @@ def draw_topics(fig, Y, n_components):
         )
     return fig
 
-def draw_ccp(fig, Y, Zeta, resolution, clickedData1, viewer_id):
+def draw_ccp(fig, Y, Zeta, resolution, clickedData, viewer_id):
     # print(X.shape, Z.shape)
     # clicked_z_id
     print('ccp')
     if viewer_id == 'viewer_1':
         # viewer_1 ってことはviewer_2をクリックした．
-        k = get_bmu(Zeta, clickedData1)
-        y = Y[:, k].reshape(resolution, resolution)
+        y = Y[:, get_bmu(Zeta, clickedData)].reshape(resolution, resolution)
     elif viewer_id == 'viewer_2':
-        k = 1
-        y = Y[k, :].reshape(resolution, resolution)
-
+        y = Y[get_bmu(Zeta, clickedData), :].reshape(resolution, resolution)
     fig.add_trace(
         go.Contour(
             x=np.linspace(-1, 1, resolution),
@@ -178,6 +175,7 @@ def draw_ccp(fig, Y, Zeta, resolution, clickedData1, viewer_id):
         )
     )
     return fig
+
 
 def get_bmu(Zeta, clickData):
     clicked_point = [[clickData['points'][0]['x'], clickData['points'][0]['y']]] if clickData else [[0, 0]]
@@ -307,6 +305,35 @@ def load_learning(n_clicks, model_name, viewer_name, clickData, keyword, prev_fi
     
     # return make_figure(keyword, model_name, "viewer_1", viewer_name)
     return make_figure(keyword, model_name, viewer_name, "viewer_1", None)
+
+
+@app.callback(
+    Output('example-graph2', 'figure'),
+    [
+        Input('explore-start', 'n_clicks'),
+        Input('model-selector', 'value'),
+        Input('viewer-selector', 'value'),
+        Input('example-graph', 'clickData'),
+    ],
+    [
+        State('search-form', 'value'),
+        State('example-graph2', 'figure'),
+    ])
+
+def load_learning(n_clicks, model_name, viewer_name, clickData, keyword, prev_fig):
+    if not keyword:
+        keyword = "Machine Learning"
+
+    if clickData:
+        if not ("points" in clickData and "pointIndex" in clickData["points"][0]):
+            pass
+        else:
+            print("clicked_from_map1")
+            return make_figure(keyword, model_name, "CCP", "viewer_2", clickData)
+    
+    # return make_figure(keyword, model_name, "viewer_1", viewer_name)
+    return make_figure(keyword, model_name, viewer_name, "viewer_2", None)
+
 
 # def ccp_given_z2(clickData):
 #         print("clicked")
