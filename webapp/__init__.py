@@ -10,3 +10,4 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 
 import webapp.dash
+import webapp.event_handler
