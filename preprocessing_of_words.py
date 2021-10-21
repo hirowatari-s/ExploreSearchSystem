@@ -2,24 +2,32 @@ import nltk
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfTransformer
+from nltk.stem import WordNetLemmatizer
 import pandas as pd
 import numpy as np
 
 def preprocessing_tag_and_stopwords(s):
     nltk.download('punkt')
     nltk.download('averaged_perceptron_tagger')
+    lemmatizer = WordNetLemmatizer()
 
-    need_tag = ['JJ','JJR','JJS','NN','NNS','NNP','NNPS','VB','VBD','VBG','VBN','VBP','VBZ']
+    need_tag = [['NN', 'NNS', 'NNP', 'NNPS'],['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'],
+                ['JJ', 'JJR', 'JJS'], ['RB', 'RBR', 'RBS']]
+    p = ['n', 'v', 'a', 'r']  #'n':名詞，'v':動詞，'a':形容詞，'r':副詞
     stopWords = set(stopwords.words('english'))
 
+    word = 'a'
     pos = []
     for i in range(len(s)):
-        morph = nltk.word_tokenize(s[i])
-        l = nltk.pos_tag(morph)
+        morph = nltk.word_tokenize(s[i])  #分かち書き
+        l = nltk.pos_tag(morph)  #タグ付け
         l_new = []
         for i in l:
-            if i[0] not in stopWords and i[1] in need_tag:
-                l_new.append(i[0]+' ')
+            if i[0] not in stopWords:
+                for j in range(len(need_tag)):
+                    if i[1] in need_tag[j]:
+                        word = lemmatizer.lemmatize(i[0], pos=p[j])  #原型にする
+                        l_new.append(word+' ')
         pos.append(''.join(l_new))
     return pos
 
