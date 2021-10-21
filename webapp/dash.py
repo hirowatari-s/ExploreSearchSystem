@@ -46,33 +46,6 @@ link_card = dbc.Card([
 )
 
 
-search_component = dbc.Col([
-    dbc.Row([
-        dbc.Col(
-            id='search-form-div',
-            children=dcc.Input(
-                id='search-form',
-                type="text",
-                placeholder="検索ワードを入力してください",
-                style=dict(width="100%"),
-                className="input-control"),
-            width=10,
-        ),
-        dbc.Col(
-            html.Div(
-                id='explore-start',
-                children="検索！",
-                className="btn btn-primary btn-lg",
-            ),
-            width=2,
-        )],
-        align="center")],
-    style={"min-height":"100px"},
-    md=12,
-    xl=6,
-    className="card bg-danger",
-)
-
 view_options = dbc.Col([
     dbc.Row(
         dbc.RadioItems(
@@ -89,10 +62,41 @@ view_options = dbc.Col([
         style=dict(height="60%", width="100%", padding="10"),
         align="center",
     )],
-    md=12,
-    xl=6,
+    width=12,
     style={"padding-left":"30px"},
     className="card bg-success",
+)
+
+
+search_component = dbc.Col([
+    dbc.Row([
+        dbc.Col(
+            id='search-form-div',
+            children=dcc.Input(
+                id='search-form',
+                type="text",
+                placeholder="検索ワードを入力してください",
+                style=dict(width="100%"),
+                className="form-control form-control-lg"),
+            width=10,
+        ),
+        dbc.Col(
+            html.Div(
+                id='explore-start',
+                children="検索！",
+                className="btn btn-primary btn-lg",
+            ),
+            width=2,
+        ),
+        view_options,
+        ],
+        align="center",
+        className="bg-warning",
+        style=dict(height="100%"))],
+    style={"min-height":"100px"},
+    md=12,
+    xl=7,
+    className="card bg-danger",
 )
 
 
@@ -135,17 +139,17 @@ app.layout = dbc.Container(children=[
                 )
             ),
             md=12,
-            xl=6
+            xl=5
         ),
         search_component,
         ],
     style={"min-height":"10vh", "margin-top":"10px"},
     align="end"),
     html.Hr(),
-    umatrix_modal,
-    dbc.Row([
-        view_options
-        ],
-        style={"min-height":"5vh"}),
+    # umatrix_modal,
+    # dbc.Row([
+    #     view_options
+    #     ],
+    #     style={"min-height":"5vh"}),
     result_component,
 ], className="bg-light")
