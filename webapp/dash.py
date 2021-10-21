@@ -19,6 +19,7 @@ import pathlib
 from fetch_arxiv import fetch_search_result
 from make_BoW import make_bow
 from sklearn.decomposition import NMF
+from scipy.spatial import distance as dist
 import pickle
 
 
@@ -153,13 +154,13 @@ def draw_topics(fig, Y, n_components):
         )
     return fig
 
-def draw_ccp(fig, Y, Zeta, resolution, clicked_z_id, viewer_id):
+def draw_ccp(fig, Y, Zeta, resolution, clickedData1, viewer_id):
     # print(X.shape, Z.shape)
     # clicked_z_id
     print('ccp')
     if viewer_id == 'viewer_1':
         # viewer_1 ってことはviewer_2をクリックした．
-        k = 1
+        k = get_bmu(Zeta, clickedData1)
         y = Y[:, k].reshape(resolution, resolution)
     elif viewer_id == 'viewer_2':
         k = 1
@@ -167,8 +168,8 @@ def draw_ccp(fig, Y, Zeta, resolution, clicked_z_id, viewer_id):
 
     fig.add_trace(
         go.Contour(
-            x=Zeta[:, 0].reshape(resolution, resolution),
-            y=Zeta[:, 1].reshape(resolution, resolution),
+            x=np.linspace(-1, 1, resolution),
+            y=np.linspace(-1, 1, resolution),
             z=y,
             name='contour',
             colorscale="gnbu",
@@ -177,6 +178,13 @@ def draw_ccp(fig, Y, Zeta, resolution, clicked_z_id, viewer_id):
         )
     )
     return fig
+
+def get_bmu(Zeta, clickData):
+    clicked_point = [[clickData['points'][0]['x'], clickData['points'][0]['y']]] if clickData else [[0, 0]]
+    clicked_point = np.array(clicked_point)
+    dists = dist.cdist(Zeta, clicked_point)
+    unit = np.argmin(dists, axis=0)
+    return unit[0]
 
 
 def draw_scatter(fig, Z, labels, rank):
@@ -201,7 +209,7 @@ def draw_scatter(fig, Z, labels, rank):
     return fig
 
 
-def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, clicked_z_id=None):
+def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, clicked_z=None):
     csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
     print(viewer_id)
     if viewer_id == 'viewer_1':
@@ -240,9 +248,9 @@ def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, cli
         n_components = 5
         fig = draw_topics(fig, Y, n_components)
     elif viewer_name=="CCP":
-        fig = draw_ccp(fig, Y, history['Zeta'], history['resolution'], clicked_z_id, viewer_id)
+        fig = draw_ccp(fig, Y, history['Zeta'], history['resolution'], clicked_z, viewer_id)
     else:
-        pass
+        print("U-matrix not implemented")
         # u_resolution = 100
         # fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
@@ -283,14 +291,19 @@ def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, cli
 
 def load_learning(n_clicks, model_name, viewer_name, clickData, keyword, prev_fig):
     print("clicked")
+    print(clickData)
+    print(keyword)
+
     if not keyword:
-        return prev_fig
-    if not ("points" in clickData and "pointIndex" in clickData["points"][0]):
-        pass
-    else:
-        print("clicked_from_map2")
-        index = clickData['points'][0]['pointIndex']
-        return make_figure(keyword, model_name, "CCP", "viewer_1", index)
+        keyword = "Machine Learning"
+
+    if clickData:
+        if not ("points" in clickData and "pointIndex" in clickData["points"][0]):
+            pass
+        else:
+            print("clicked_from_map2")
+            # index = clickData['points'][0]['pointIndex']
+            return make_figure(keyword, model_name, "CCP", "viewer_1", clickData)
     
     # return make_figure(keyword, model_name, "viewer_1", viewer_name)
     return make_figure(keyword, model_name, viewer_name, "viewer_1", None)
