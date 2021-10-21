@@ -29,7 +29,6 @@ umatrix_modal = dbc.Modal([
 
 
 link_card = dbc.Card([
-    # html.P("", id="card-text", className="h4"),
     dbc.CardHeader("", id="card-text", className="h4"),
     html.P("", id="snippet-text", className="h5",style={"min-height":"100px"}),
     html.A(
@@ -71,7 +70,7 @@ search_component = dbc.Col([
     style={"min-height":"100px"},
     md=12,
     xl=6,
-    className="card",
+    className="card bg-danger",
 )
 
 view_options = dbc.Col([
@@ -104,7 +103,7 @@ view_options = dbc.Col([
     md=12,
     xl=6,
     style={"min-height":"100px", "padding-left":"30px"},
-    className="card",
+    className="card bg-success",
 )
 
 
@@ -121,7 +120,7 @@ result_component = dbc.Row(
             ),
             style={"height": "100%",},
             md=12,
-            xl=9,
+            xl=6,
             className="card",
         ),
         dbc.Col(
@@ -135,7 +134,7 @@ result_component = dbc.Row(
             ),
             style={"height": "100%",},
             md=12,
-            xl=9,
+            xl=6,
             className="card",
         ),
         dbc.Col(
@@ -156,7 +155,7 @@ app.layout = dbc.Container(children=[
         dbc.Col(
             html.H1(
                 id='title',
-                children='情報探索エンジン',
+                children='論文探索エンジン',
                 className="display-2",
                 style=dict(
                     fontFamily="Oswald, sans-serif"
@@ -165,19 +164,9 @@ app.layout = dbc.Container(children=[
             md=12,
             xl=6
         ),
-        dbc.Col(
-            html.Div(
-            children=[
-                "情報探索をサポートする Web アプリケーションです．", html.Br(),
-                "Google 検索結果を2次元にマッピングし，", html.Br(),
-                "さらに勾配計算やクラスタリングをすることによって", html.Br(),
-                "情報探索をサポートします．",
-            ],
-            className="h4"),
-            md=12,
-            xl=6
-        )
-    ], style={"min-height":"10vh", "margin-top":"10px"},
+        search_component,
+        ],
+    style={"min-height":"10vh", "margin-top":"10px"},
     align="end"),
     html.Hr(),
     # dbc.Button(
@@ -185,9 +174,9 @@ app.layout = dbc.Container(children=[
     # ),
     umatrix_modal,
     dbc.Row([
-        search_component,
+        # search_component,
         view_options
         ],
         style={"min-height":"10vh"}),
     result_component,
-])
+], className="bg-light")
