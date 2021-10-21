@@ -193,8 +193,8 @@ def draw_scatter(fig, Z, labels, rank):
     return fig
 
 
-def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, clicked_z=None):
-    csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
+def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None):
+    csv_df, labels, X, history, rank = prepare_materials(keyword, 'TSOM')
     logger.debug(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']

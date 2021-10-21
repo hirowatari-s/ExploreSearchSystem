@@ -77,18 +77,6 @@ view_options = dbc.Col([
     dbc.Row(
         dbc.RadioItems(
             options=[
-                {'label': 'SOM', 'value': 'SOM'},
-                {'label': 'UKR', 'value': 'UKR'},
-            ],
-            value='TSOM',
-            id="model-selector",
-            style={'textAlign': "center", "display": "none"},
-            className="h3",
-        ),
-    ),
-    dbc.Row(
-        dbc.RadioItems(
-            options=[
                 {'label': 'U-matrix 表示', 'value': 'U-matrix'},
                 {'label': 'クラスタ表示', 'value': 'topic'},
             ],
