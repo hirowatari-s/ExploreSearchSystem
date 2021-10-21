@@ -107,36 +107,25 @@ view_options = dbc.Col([
 )
 
 
+make_map = lambda id, viewer_id: dbc.Col(
+    dcc.Loading(
+        dcc.Graph(
+            id=id,
+            figure=make_figure("Machine Learning", "TSOM", viewer_id=viewer_id),
+            config=dict(displayModeBar=False)
+        ),
+    ),
+    style={"height": "100%",},
+    md=12,
+    xl=6,
+    className="card",
+)
+
+
 result_component = dbc.Row(
     [
-        dbc.Col(
-            dcc.Loading(
-                dcc.Graph(
-                    id='paper-map',
-                    figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_1"),
-                    config=dict(displayModeBar=False)
-                ),
-                id="loading"
-            ),
-            style={"height": "100%",},
-            md=12,
-            xl=6,
-            className="card",
-        ),
-        dbc.Col(
-            dcc.Loading(
-                dcc.Graph(
-                    id='word-map',
-                    figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_2"),
-                    config=dict(displayModeBar=False)
-                ),
-                id="loading2"
-            ),
-            style={"height": "100%",},
-            md=12,
-            xl=6,
-            className="card",
-        ),
+        make_map('paper-map', 'viewer_1'),
+        make_map('word-map',  'viewer_2'),
         dbc.Col(
             link_card,
             md=12,
