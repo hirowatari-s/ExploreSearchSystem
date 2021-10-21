@@ -282,9 +282,12 @@ def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, cli
     ])
 
 def load_learning(n_clicks, model_name, viewer_name, clickData, keyword, prev_fig):
+    print("clicked")
     if not keyword:
         return prev_fig
     if not ("points" in clickData and "pointIndex" in clickData["points"][0]):
+        pass
+    else:
         print("clicked_from_map2")
         index = clickData['points'][0]['pointIndex']
         return make_figure(keyword, model_name, "CCP", "viewer_1", index)
