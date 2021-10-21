@@ -16,29 +16,29 @@ def load_learning(viewer_id, n_clicks, model_name, viewer_name, clickData, keywo
 
 
 app.callback(
-    Output('example-graph', 'figure'),
+    Output('paper-map', 'figure'),
     [
         Input('explore-start', 'n_clicks'),
         Input('model-selector', 'value'),
         Input('viewer-selector', 'value'),
-        Input('example-graph2', 'clickData'),
+        Input('word-map', 'clickData'),
     ],
     [
         State('search-form', 'value'),
-        State('example-graph', 'figure'),
+        State('paper-map', 'figure'),
 ])(partial(load_learning, "viewer_1"))
 
 app.callback(
-    Output('example-graph2', 'figure'),
+    Output('word-map', 'figure'),
     [
         Input('explore-start', 'n_clicks'),
         Input('model-selector', 'value'),
         Input('viewer-selector', 'value'),
-        Input('example-graph', 'clickData'),
+        Input('paper-map', 'clickData'),
     ],
     [
         State('search-form', 'value'),
-        State('example-graph2', 'figure'),
+        State('word-map', 'figure'),
 ])(partial(load_learning, "viewer_2"))
 
 
@@ -50,7 +50,7 @@ app.callback(
         Output('snippet-text', 'children'),
     ],
     [
-        Input('example-graph', 'hoverData'),
+        Input('paper-map', 'hoverData'),
     ],
     [
         State('search-form', 'value'),
@@ -90,4 +90,4 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
 # app.clientside_callback(
 #     "onLatentClicked",
 #     Output('explore-start', 'outline'),
-#     Input('example-graph', 'clickData'), prevent_initial_call=True)
+#     Input('paper-map', 'clickData'), prevent_initial_call=True)

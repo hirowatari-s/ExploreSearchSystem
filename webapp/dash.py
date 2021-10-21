@@ -112,7 +112,7 @@ result_component = dbc.Row(
         dbc.Col(
             dcc.Loading(
                 dcc.Graph(
-                    id='example-graph',
+                    id='paper-map',
                     figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_1"),
                     config=dict(displayModeBar=False)
                 ),
@@ -126,7 +126,7 @@ result_component = dbc.Row(
         dbc.Col(
             dcc.Loading(
                 dcc.Graph(
-                    id='example-graph2',
+                    id='word-map',
                     figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_2"),
                     config=dict(displayModeBar=False)
                 ),
