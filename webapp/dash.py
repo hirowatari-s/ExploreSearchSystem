@@ -59,11 +59,11 @@ view_options = dbc.Col([
             inline=True,
             className="h3",
         ),
-        style=dict(height="60%", width="100%", padding="10"),
+        style=dict(height="50%", width="100%", padding="10"),
         align="center",
     )],
     width=12,
-    style={"padding-left":"30px"},
+    style={"padding-left":"30px", "height": "50%"},
     className="card bg-success",
 )
 
@@ -76,7 +76,7 @@ search_component = dbc.Col([
                 id='search-form',
                 type="text",
                 placeholder="検索ワードを入力してください",
-                style=dict(width="100%"),
+                style=dict(width="100%", fontSize="18px"),
                 className="form-control form-control-lg"),
             width=10,
         ),
@@ -92,10 +92,10 @@ search_component = dbc.Col([
         ],
         align="center",
         className="bg-warning",
-        style=dict(height="100%"))],
-    style={"min-height":"100px"},
+        style=dict(minHeight="100px"))],
+    style={"min-height":"100px", "height":"100%"},
     md=12,
-    xl=7,
+    xl=8,
     className="card bg-danger",
 )
 
@@ -122,7 +122,7 @@ result_component = dbc.Row(
     ],
     align="center",
     className="h-75",
-    style={"min-height": "70vh",},
+    style={"min-height": "60vh",},
     no_gutters=True
 )
 
@@ -133,18 +133,20 @@ app.layout = dbc.Container(children=[
             html.H1(
                 id='title',
                 children='論文探索エンジン',
-                className="display-2",
+                className="display-4",
                 style=dict(
-                    fontFamily="Oswald, sans-serif"
+                    fontFamily="Oswald, sans-serif",
+                    textAlign="center",
                 )
             ),
             md=12,
-            xl=5
+            xl=4,
+            align="center",
         ),
         search_component,
         ],
     style={"min-height":"10vh", "margin-top":"10px"},
-    align="end"),
+    align="center"),
     html.Hr(),
     # umatrix_modal,
     # dbc.Row([
@@ -152,4 +154,5 @@ app.layout = dbc.Container(children=[
     #     ],
     #     style={"min-height":"5vh"}),
     result_component,
+    html.Hr(),
 ], className="bg-light")
