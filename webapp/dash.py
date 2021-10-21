@@ -102,7 +102,7 @@ view_options = dbc.Col([
     )],
     md=12,
     xl=6,
-    style={"min-height":"100px", "padding-left":"30px"},
+    style={"min-height":"50px", "padding-left":"30px"},
     className="card bg-success",
 )
 
@@ -126,11 +126,6 @@ result_component = dbc.Row(
     [
         make_map('paper-map', 'viewer_1'),
         make_map('word-map',  'viewer_2'),
-        dbc.Col(
-            link_card,
-            md=12,
-            xl=3
-        )
     ],
     align="center",
     className="h-75",
@@ -158,12 +153,8 @@ app.layout = dbc.Container(children=[
     style={"min-height":"10vh", "margin-top":"10px"},
     align="end"),
     html.Hr(),
-    # dbc.Button(
-    #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
-    # ),
     umatrix_modal,
     dbc.Row([
-        # search_component,
         view_options
         ],
         style={"min-height":"10vh"}),
