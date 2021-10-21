@@ -16,10 +16,10 @@ def load_learning(viewer_id, n_clicks, model_name, viewer_name, clickData, keywo
     if clickData and "points" in clickData and "pointIndex" in clickData["points"][0]:
         print("clicked_from_map2")
         # index = clickData['points'][0]['pointIndex']
-        return make_figure(keyword, model_name, "CCP", "viewer_1", clickData)
+        return make_figure(keyword, model_name, "CCP", viewer_id, clickData)
 
     # return make_figure(keyword, model_name, "viewer_1", viewer_name)
-    return make_figure(keyword, model_name, viewer_name, "viewer_1", None)
+    return make_figure(keyword, model_name, viewer_name, viewer_id, None)
 
 
 app.callback(
