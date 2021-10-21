@@ -9,6 +9,7 @@ from tsom import ManifoldModeling as MM
 from sklearn.decomposition import NMF
 from scipy.spatial import distance as dist
 from Grad_norm import Grad_Norm
+from webapp import logger
 
 
 resolution = 10
@@ -25,13 +26,13 @@ def prepare_materials(keyword, model_name):
 
     # Load data
     if pathlib.Path(keyword+".csv").exists():
-        print("Data exists")
+        logger.debug("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
         labels = csv_df['site_name']
         rank = csv_df['ranking']
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
-        print("Fetch data to learn")
+        logger.debug("Fetch data to learn")
         csv_df = fetch_search_result(keyword)
         X , labels, _ = make_bow(csv_df)
         rank = np.arange(1, X.shape[0]+1)  # FIXME
@@ -44,11 +45,11 @@ def prepare_materials(keyword, model_name):
 
     model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
     if pathlib.Path(model_save_path).exists():
-        print("Model already learned")
+        logger.debug("Model already learned")
         with open(model_save_path, 'rb') as f:
             history = pickle.load(f)
     else:
-        print("Model learning")
+        logger.debug("Model learning")
         np.random.seed(seed)
         mm = MM(
             X,
@@ -69,7 +70,7 @@ def prepare_materials(keyword, model_name):
             Zeta=mm.Zeta1,
             resolution=mm.resoluton
         )
-        print("Learning finished.")
+        logger.debug("Learning finished.")
         with open(model_save_path, 'wb') as f:
             pickle.dump(history, f)
     return csv_df, labels, X, history, rank
@@ -142,7 +143,7 @@ def draw_topics(fig, Y, n_components):
     return fig
 
 def draw_ccp(fig, Y, Zeta, resolution, clickedData, viewer_id):
-    print('ccp')
+    logger.debug('ccp')
     if viewer_id == 'viewer_1':
         # viewer_1 ってことはviewer_2をクリックした．
         y = Y[:, get_bmu(Zeta, clickedData)].reshape(resolution, resolution)
@@ -194,13 +195,13 @@ def draw_scatter(fig, Z, labels, rank):
 
 def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, clicked_z=None):
     csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
-    print(viewer_id)
+    logger.debug(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
     elif viewer_id == 'viewer_2':
         Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
     else:
-        print("Set viewer_id")
+        logger.debug("Set viewer_id")
 
     # Build figure
     fig = go.Figure(
@@ -233,7 +234,7 @@ def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, cli
     elif viewer_name=="CCP":
         fig = draw_ccp(fig, Y, history['Zeta'], history['resolution'], clicked_z, viewer_id)
     else:
-        print("U-matrix not implemented")
+        logger.debug("U-matrix not implemented")
         NotImplemented
         # u_resolution = 100
         # fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)

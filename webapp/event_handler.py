@@ -1,5 +1,5 @@
 from dash.dependencies import Input, Output, State
-from webapp import app
+from webapp import app, logger
 import pandas as pd
 from webapp.figure_maker import make_figure
 
@@ -7,19 +7,12 @@ from functools import partial
 
 
 def load_learning(viewer_id, n_clicks, model_name, viewer_name, clickData, keyword, prev_fig):
-    print("graph clicked")
-    print(clickData)
-
-    if not keyword:
-        keyword = "Machine Learning"
-
+    logger.debug(f"graph '{viewer_name}' clicked")
+    logger.debug(f"clickData: {clickData}")
+    keyword = keyword or "Machine Learning"
     if clickData and "points" in clickData and "pointIndex" in clickData["points"][0]:
-        print("clicked_from_map2")
-        # index = clickData['points'][0]['pointIndex']
-        return make_figure(keyword, model_name, "CCP", viewer_id, clickData)
-
-    # return make_figure(keyword, model_name, "viewer_1", viewer_name)
-    return make_figure(keyword, model_name, viewer_name, viewer_id, None)
+        viewer_name = "CCP"
+    return make_figure(keyword, model_name, viewer_name, viewer_id, clickData)
 
 
 app.callback(
