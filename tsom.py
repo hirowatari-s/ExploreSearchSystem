@@ -91,6 +91,7 @@ class ManifoldModeling:
         # 潜在空間の設定
         resolution1 = resolution
         resolution2 = resolution
+        self.resoluton = resolution
         self.latent_dim1 = latent_dim
         self.latent_dim2 = latent_dim
         zeta = np.meshgrid(np.linspace(-1, 1, resolution), np.linspace(-1, 1, resolution))

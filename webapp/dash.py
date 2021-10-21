@@ -86,6 +86,8 @@ def prepare_materials(keyword, model_name):
             Z2=mm.history['z2'][-1],
             Y=mm.history['y'][-1],
             sigma=mm.history['sigma'][-1],
+            Zeta=mm.Zeta1,
+            resolution=mm.resoluton
         )
         print("Learning finished.")
         with open(model_save_path, 'wb') as f:
@@ -160,6 +162,31 @@ def draw_topics(fig, Y, n_components):
         )
     return fig
 
+def draw_ccp(fig, Y, Zeta, resolution, clicked_z_id, viewer_id):
+    # print(X.shape, Z.shape)
+    # clicked_z_id
+    print('ccp')
+    if viewer_id == 'viewer_1':
+        # viewer_1 ってことはviewer_2をクリックした．
+        k = 1
+        y = Y[:, k].reshape(resolution, resolution)
+    elif viewer_id == 'viewer_2':
+        k = 1
+        y = Y[k, :].reshape(resolution, resolution)
+
+    fig.add_trace(
+        go.Contour(
+            x=Zeta[:, 0].reshape(resolution, resolution),
+            y=Zeta[:, 1].reshape(resolution, resolution),
+            z=y,
+            name='contour',
+            colorscale="gnbu",
+            hoverinfo='skip',
+            showscale=False,
+        )
+    )
+    return fig
+
 
 def draw_scatter(fig, Z, labels, rank):
     fig.add_trace(
@@ -180,24 +207,6 @@ def draw_scatter(fig, Z, labels, rank):
             ),
         )
     )
-    # fig.add_trace(
-    #     go.Scatter(
-    #         x=Z[:, 0],
-    #         y=Z[:, 1],
-    #         mode="markers",
-    #         name='lv',
-    #         marker=dict(
-    #             size=rank[::-1],
-    #             sizemode='area',
-    #             sizeref=2. * max(rank) / (40. ** 2),
-    #             sizemin=4,
-    #         ),
-    #         text=labels,
-    #         hoverlabel=dict(
-    #             bgcolor="rgba(255, 255, 255, 0.75)",
-    #         ),
-    #     )
-    # )
     return fig
 
 
@@ -244,10 +253,15 @@ def draw_favicons(fig, Z, csv_df):
     return fig
 
 
-def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
+def make_figure(keyword, model_name, viewer_id, enable_favicon=False, viewer_name="U_matrix", clicked_z_id=None):
     csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
-    Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
-
+    if viewer_id == 'viewer_1':
+        Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
+    elif viewer_id == 'viewer_2':
+        Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
+    else:
+        print("Set viewer_id")
+    
     # Build figure
     fig = go.Figure(
         layout=go.Layout(
@@ -276,6 +290,8 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     if viewer_name=="topic":
         n_components = 5
         fig = draw_topics(fig, Y, n_components)
+    elif viewer_name=="CCP":
+        fig = draw_ccp(fig, Y, history['Zeta'], history['resolution'], clicked_z_id, viewer_id)
     else:
         u_resolution = 100
         fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
@@ -303,69 +319,6 @@ def make_figure(keyword, model_name, enable_favicon=False, viewer_name="U_matrix
     )
 
     return fig
-
-def make_figure2(keyword, model_name, enable_favicon=False, viewer_name="U_matrix"):
-    csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
-    Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
-
-    # Build figure
-    fig = go.Figure(
-        layout=go.Layout(
-            xaxis=dict(
-                range=[Z[:, 0].min() - 0.1, Z[:, 0].max() + 0.1],
-                visible=False,
-                autorange=True,
-            ),
-            yaxis=dict(
-                range=[Z[:, 1].min() - 0.1, Z[:, 1].max() + 0.1],
-                visible=False,
-                scaleanchor='x',
-                scaleratio=1.0,
-            ),
-            showlegend=False,
-            autosize=True,
-            margin=dict(
-                b=0,
-                t=0,
-                l=0,
-                r=0,
-            ),
-        ),
-    )
-
-    if viewer_name=="topic":
-        n_components = 5
-        fig = draw_topics(fig, Y, n_components)
-    else:
-        u_resolution = 100
-        fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
-
-    fig = draw_scatter(fig, Z, labels, rank)
-
-    if enable_favicon:
-        fig = draw_favicons(fig, Z, csv_df)
-
-    fig.update_coloraxes(
-        showscale=False
-    )
-    fig.update_layout(
-        plot_bgcolor="white",
-    )
-    fig.update(
-        layout_coloraxis_showscale=False,
-        layout_showlegend=False,
-    )
-    fig.update_yaxes(
-        fixedrange=True,
-    )
-    fig.update_xaxes(
-        fixedrange=True,
-    )
-
-    return fig
-
-
-
 
 def make_search_form(style):
     form_id = 'search-form'
@@ -375,7 +328,7 @@ def make_search_form(style):
             options=[
                 {'label': name, 'value': name} for name in SAMPLE_DATASETS
             ],
-            value='ペット'
+            value='ファッション'
         )
     else:
         return dcc.Input(
@@ -395,15 +348,26 @@ def make_search_form(style):
         Input('model-selector', 'value'),
         Input('viewer-selector', 'value'),
         Input('favicon-enabled', 'value'),
+        Input('example-graph2', 'clickData'),
     ],
     [
         State('search-form', 'value'),
         State('example-graph', 'figure'),
     ])
-def load_learning(n_clicks, model_name, viewer_name, favicon, keyword, prev_fig):
+def load_learning(n_clicks, model_name, viewer_name, favicon, clickData, keyword, prev_fig):
     if not keyword:
         return prev_fig
-    return make_figure(keyword, model_name, favicon, viewer_name)
+    if not ("points" in clickData and "pointIndex" in clickData["points"][0]):
+        print("clicked_from_map2")
+        index = clickData['points'][0]['pointIndex']
+        return make_figure(keyword, model_name, "viewer_1", favicon, viewer_name, index)
+    
+    return make_figure(keyword, model_name, viewer_name, favicon, viewer_name)
+def ccp_given_z2(clickData):
+        print("clicked")
+        # if not ("points" in Z1 and "pointIndex" in Z1["points"][0]) :
+        # if clicked viewer_2 variable, change viewer_1
+        return make_figure("ファッション", "TSOM", "viewer_1", viewer_name="CCP")
 
 @app.callback(
     Output("modal", "is_open"),
@@ -466,18 +430,32 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
         snippet = ""
     return link_title, url, target, page_title, snippet #, favicon_url
 
+# app.clientside_callback(
+#     "onLatentClicked",
+#     Output('explore-start', 'outline'),
+#     Input('example-graph', 'clickData'), prevent_initial_call=True)
 
-app.clientside_callback(
-    "onLatentClicked",
-    Output('explore-start', 'outline'),
-    Input('example-graph', 'clickData'), prevent_initial_call=True)
+# @app.callback(
+#         Output('example-graph', 'figure'),
+#     [
+#         Input('example-graph2', 'clickData'),
+#     ])
+# def ccp_given_z2(clickData):
+#         print("clicked")
+#         # if not ("points" in Z1 and "pointIndex" in Z1["points"][0]) :
+#         # if clicked viewer_2 variable, change viewer_1
+#         return make_figure("ファッション", "TSOM", "viewer_1", viewer_name="CCP")
 
-
-# モーダルの Toggler
-def toggle_modal(n1, n2, is_open):
-    if n1 or n2:
-        return not is_open
-    return is_open
+# @app.callback(
+#         Output('example-graph2', 'figure'),
+#     [
+#         Input('example-graph', 'clickData'),
+#     ])
+# def ccp_given_z1(clickData):
+#         print("clicked_from_map1")
+#         # if not ("points" in Z1 and "pointIndex" in Z1["points"][0]) :
+#         # if clicked viewer_1 variable, change viewer_2
+#         return make_figure("ファッション", "TSOM", "viewer_2", viewer_name="CCP")
 
 
 # U-Matrix の説明用のモーダル
@@ -581,7 +559,7 @@ view_options = dbc.Col([
                 {'label': 'SOM', 'value': 'SOM'},
                 {'label': 'UKR', 'value': 'UKR'},
             ],
-            value='SOM',
+            value='TSOM',
             id="model-selector",
             style={'textAlign': "center", "display": "none"},
             className="h3",
@@ -627,7 +605,7 @@ result_component = dbc.Row(
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph',
-                    figure=make_figure("ファッション", "TSOM"),
+                    figure=make_figure("ファッション", "TSOM", "viewer_1"),
                     config=dict(displayModeBar=False)
                 ),
                 id="loading"
@@ -641,7 +619,7 @@ result_component = dbc.Row(
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph2',
-                    figure=make_figure2("ファッション", "TSOM"),
+                    figure=make_figure("ファッション", "TSOM", "viewer_2"),
                     config=dict(displayModeBar=False)
                 ),
                 id="loading2"
