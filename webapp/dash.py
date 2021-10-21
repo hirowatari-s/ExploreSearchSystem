@@ -12,27 +12,17 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 import numpy as np
-from webapp import app, FILE_UPLOAD_PATH, DEFAULT_FAVICON_PATH
-import requests
-from requests.exceptions import Timeout
-import io
-from PIL import Image
+from webapp import app
 from Grad_norm import Grad_Norm
 from tsom import ManifoldModeling as MM
 import pathlib
-from scraperbox import fetch_gsearch_result
+from fetch_arxiv import fetch_search_result
 from make_BoW import make_bow
 from sklearn.decomposition import NMF
-import tldextract
 import pickle
 
 
-PROJECT_ROOT = pathlib.Path('.')
-SAMPLE_DATASETS = [
-    csv_file.stem for csv_file in PROJECT_ROOT.glob("./*.csv")
-]
-domain_favicon_map = dict()
-resolution = 20
+resolution = 10
 
 
 def prepare_materials(keyword, model_name):
@@ -53,7 +43,7 @@ def prepare_materials(keyword, model_name):
         X = np.load("data/tmp/" + keyword + ".npy")
     else:
         print("Fetch data to learn")
-        csv_df = fetch_gsearch_result(keyword)
+        csv_df = fetch_search_result(keyword)
         X , labels, _ = make_bow(csv_df)
         rank = np.arange(1, X.shape[0]+1)  # FIXME
         csv_df.to_csv(keyword+".csv")
@@ -61,6 +51,7 @@ def prepare_materials(keyword, model_name):
         label_file = 'data/tmp/'+keyword+'_label.npy'
         np.save(feature_file, X)
         np.save(label_file, labels)
+
 
     model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
     if pathlib.Path(model_save_path).exists():
@@ -210,51 +201,9 @@ def draw_scatter(fig, Z, labels, rank):
     return fig
 
 
-def draw_favicons(fig, Z, csv_df):
-    for i, z in enumerate(Z[::-1]):
-        url = csv_df['URL'][i]
-        parser = tldextract.extract(url)
-        image_filepath = pathlib.Path(FILE_UPLOAD_PATH, parser.domain + '.png')
-        print("image path:", image_filepath.resolve())
-        if not parser.domain in domain_favicon_map:
-            if not image_filepath.exists():
-                print("From API")
-                favicon_url = f"https://s2.googleusercontent.com/s2/favicons?domain_url={url}"
-                try:
-                    res = requests.get(favicon_url, timeout=2)
-                    logo_img = Image.open(io.BytesIO(res.content))
-                except Timeout:
-                    print("Default")
-                    logo_img = Image.open(DEFAULT_FAVICON_PATH)
-
-                logo_img.save(image_filepath)
-            else:
-                print("From local")
-                logo_img = Image.open(image_filepath)
-            domain_favicon_map[parser.domain] = logo_img
-        else:
-            print("From cache")
-            logo_img = domain_favicon_map[parser.domain]
-        print("fetched:", url)
-        fig.add_layout_image(
-                x=z[0],
-                sizex=0.1,
-                y=z[1],
-                sizey=0.1,
-                xref="x",
-                yref="y",
-                opacity=1,
-                xanchor="center",
-                yanchor="middle",
-                layer="above",
-                source=logo_img
-        )
-    print("!!! Favicon finish !!!")
-    return fig
-
-
-def make_figure(keyword, model_name, viewer_id, enable_favicon=False, viewer_name="U_matrix", clicked_z_id=None):
+def make_figure(keyword, model_name, viewer_name="U_matrix", viewer_id=None, clicked_z_id=None):
     csv_df, labels, X, history, rank = prepare_materials(keyword, model_name)
+    print(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
     elif viewer_id == 'viewer_2':
@@ -293,13 +242,11 @@ def make_figure(keyword, model_name, viewer_id, enable_favicon=False, viewer_nam
     elif viewer_name=="CCP":
         fig = draw_ccp(fig, Y, history['Zeta'], history['resolution'], clicked_z_id, viewer_id)
     else:
-        u_resolution = 100
-        fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
+        pass
+        # u_resolution = 100
+        # fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
     fig = draw_scatter(fig, Z, labels, rank)
-
-    if enable_favicon:
-        fig = draw_favicons(fig, Z, csv_df)
 
     fig.update_coloraxes(
         showscale=False
@@ -320,26 +267,6 @@ def make_figure(keyword, model_name, viewer_id, enable_favicon=False, viewer_nam
 
     return fig
 
-def make_search_form(style):
-    form_id = 'search-form'
-    if style == 'selection':
-        return dbc.Select(
-            id=form_id,
-            options=[
-                {'label': name, 'value': name} for name in SAMPLE_DATASETS
-            ],
-            value='ファッション'
-        )
-    else:
-        return dcc.Input(
-            id=form_id,
-            type="text",
-            placeholder="検索ワードを入力してください",
-            style=dict(width="100%"),
-            disabled = True,
-            className="input-control"
-        )
-
 
 @app.callback(
     Output('example-graph', 'figure'),
@@ -347,44 +274,31 @@ def make_search_form(style):
         Input('explore-start', 'n_clicks'),
         Input('model-selector', 'value'),
         Input('viewer-selector', 'value'),
-        Input('favicon-enabled', 'value'),
         Input('example-graph2', 'clickData'),
     ],
     [
         State('search-form', 'value'),
         State('example-graph', 'figure'),
     ])
-def load_learning(n_clicks, model_name, viewer_name, favicon, clickData, keyword, prev_fig):
+
+def load_learning(n_clicks, model_name, viewer_name, clickData, keyword, prev_fig):
     if not keyword:
         return prev_fig
     if not ("points" in clickData and "pointIndex" in clickData["points"][0]):
         print("clicked_from_map2")
         index = clickData['points'][0]['pointIndex']
-        return make_figure(keyword, model_name, "viewer_1", favicon, viewer_name, index)
+        return make_figure(keyword, model_name, "CCP", "viewer_1", index)
     
-    return make_figure(keyword, model_name, viewer_name, favicon, viewer_name)
-def ccp_given_z2(clickData):
-        print("clicked")
-        # if not ("points" in Z1 and "pointIndex" in Z1["points"][0]) :
-        # if clicked viewer_2 variable, change viewer_1
-        return make_figure("ファッション", "TSOM", "viewer_1", viewer_name="CCP")
+    # return make_figure(keyword, model_name, "viewer_1", viewer_name)
+    return make_figure(keyword, model_name, viewer_name, "viewer_1", None)
 
-@app.callback(
-    Output("modal", "is_open"),
-    [Input("search-style-selector", "value"), Input("close", "n_clicks")],
-    [State("modal", "is_open")],
-)
-def toggle_modal(n1, n2, is_open):
-    switch = True if n1 == "freedom" else False
-    if switch:
-        return not is_open
-    return is_open
+# def ccp_given_z2(clickData):
+#         print("clicked")
+#         # if not ("points" in Z1 and "pointIndex" in Z1["points"][0]) :
+#         # if clicked viewer_2 variable, change viewer_1
+#         return make_figure("ファッション", "TSOM", "viewer_1", viewer_name="CCP")
 
-@app.callback(
-    Output('search-form-div', 'children'),
-    Input('search-style-selector', 'value'))
-def search_form_callback(style):
-    return make_search_form(style) 
+
 
 @app.callback([
         Output('link', 'children'),
@@ -428,34 +342,12 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
         target = "_self"
         page_title = ""
         snippet = ""
-    return link_title, url, target, page_title, snippet #, favicon_url
+    return link_title, url, target, page_title, snippet
 
 # app.clientside_callback(
 #     "onLatentClicked",
 #     Output('explore-start', 'outline'),
 #     Input('example-graph', 'clickData'), prevent_initial_call=True)
-
-# @app.callback(
-#         Output('example-graph', 'figure'),
-#     [
-#         Input('example-graph2', 'clickData'),
-#     ])
-# def ccp_given_z2(clickData):
-#         print("clicked")
-#         # if not ("points" in Z1 and "pointIndex" in Z1["points"][0]) :
-#         # if clicked viewer_2 variable, change viewer_1
-#         return make_figure("ファッション", "TSOM", "viewer_1", viewer_name="CCP")
-
-# @app.callback(
-#         Output('example-graph2', 'figure'),
-#     [
-#         Input('example-graph', 'clickData'),
-#     ])
-# def ccp_given_z1(clickData):
-#         print("clicked_from_map1")
-#         # if not ("points" in Z1 and "pointIndex" in Z1["points"][0]) :
-#         # if clicked viewer_1 variable, change viewer_2
-#         return make_figure("ファッション", "TSOM", "viewer_2", viewer_name="CCP")
 
 
 # U-Matrix の説明用のモーダル
@@ -469,26 +361,14 @@ umatrix_modal = dbc.Modal([
     ),
 ], id="umatrix-modal", is_open=False, centered=True)
 
-freedom_modal = dbc.Modal([
-                dbc.ModalHeader("API Information"),
-                dbc.ModalBody("現在APIの呼び出し制限回数を超えています．サンプルデータセットでお楽しみください． \U0001f647"),
-                dbc.ModalFooter(
-                    dbc.Button(
-                        "Close", id="close", className="ml-auto", n_clicks=0
-                    )
-                ),
-            ],
-            id="modal",
-            is_open=False,
-)
 
-app.callback(
-    Output('umatrix-modal', 'is_open'),
-    [
-        Input('open-umatrix-modal', 'n_clicks'),
-        Input('close-umatrix-modal', 'n_clicks'),
-    ],
-    State('umatrix-modal', 'is_open'))(toggle_modal)
+# app.callback(
+#     Output('umatrix-modal', 'is_open'),
+#     [
+#         Input('open-umatrix-modal', 'n_clicks'),
+#         Input('close-umatrix-modal', 'n_clicks'),
+#     ],
+#     State('umatrix-modal', 'is_open'))(toggle_modal)
 
 
 link_card = dbc.Card([
@@ -511,30 +391,15 @@ link_card = dbc.Card([
 
 
 search_component = dbc.Col([
-    dbc.Row(
-        dbc.Col(
-            dbc.RadioItems(
-                options=[
-                    {'label': 'サンプルのデータセット', 'value': 'selection'},
-                    {'label': '自由に検索', 'value': 'freedom'},
-                ],
-                value='selection',
-                id="search-style-selector",
-                style={
-                    "height":"100%",
-                    "width":"100%",
-                    "textAligh":"center"},
-                className="h3",
-                inline=True,
-            ),
-        ),
-        style=dict(height="40%"),
-        align="center"
-    ), 
     dbc.Row([
         dbc.Col(
             id='search-form-div',
-            children=make_search_form('selection'),
+            children=dcc.Input(
+                id='search-form',
+                type="text",
+                placeholder="検索ワードを入力してください",
+                style=dict(width="100%"),
+                className="input-control"),
             width=10,
         ),
         dbc.Col(
@@ -566,18 +431,6 @@ view_options = dbc.Col([
         ),
     ),
     dbc.Row(
-        dbc.Checklist(
-            id="favicon-enabled",
-            options=[dict(label="ロゴを表示する", value=True)],
-            value=[],
-            className="form-check-label h3",
-            # style=dict(width="100%", textAlign="center"),
-            switch=True,
-        ),
-        style=dict(height="40%"),
-        align="center"
-    ),
-    dbc.Row(
         dbc.RadioItems(
             options=[
                 {'label': 'U-matrix 表示', 'value': 'U-matrix'},
@@ -605,7 +458,7 @@ result_component = dbc.Row(
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph',
-                    figure=make_figure("ファッション", "TSOM", "viewer_1"),
+                    figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_1"),
                     config=dict(displayModeBar=False)
                 ),
                 id="loading"
@@ -619,7 +472,7 @@ result_component = dbc.Row(
             dcc.Loading(
                 dcc.Graph(
                     id='example-graph2',
-                    figure=make_figure("ファッション", "TSOM", "viewer_2"),
+                    figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_2"),
                     config=dict(displayModeBar=False)
                 ),
                 id="loading2"
@@ -675,7 +528,6 @@ app.layout = dbc.Container(children=[
     #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
     # ),
     umatrix_modal,
-    freedom_modal,
     dbc.Row([
         search_component,
         view_options
