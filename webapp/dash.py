@@ -59,12 +59,12 @@ view_options = dbc.Col([
             inline=True,
             className="h3",
         ),
-        style=dict(height="50%", width="100%", padding="10"),
+        style=dict(height="50%", padding="10"),
         align="center",
     )],
     width=12,
     style={"padding-left":"30px", "height": "50%"},
-    className="card bg-success",
+    className="card",
 )
 
 
@@ -91,12 +91,11 @@ search_component = dbc.Col([
         view_options,
         ],
         align="center",
-        className="bg-warning",
         style=dict(minHeight="100px"))],
     style={"min-height":"100px", "height":"100%"},
     md=12,
     xl=8,
-    className="card bg-danger",
+    className="card",
 )
 
 
