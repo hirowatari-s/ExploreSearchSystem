@@ -78,6 +78,7 @@ view_options = dbc.Col([
         dbc.RadioItems(
             options=[
                 {'label': 'U-matrix 表示', 'value': 'U-matrix'},
+                {'label': 'CCP 表示', 'value': 'CCP'},
                 {'label': 'クラスタ表示', 'value': 'topic'},
             ],
             value='U-matrix',
@@ -90,7 +91,7 @@ view_options = dbc.Col([
     )],
     md=12,
     xl=6,
-    style={"min-height":"50px", "padding-left":"30px"},
+    style={"padding-left":"30px"},
     className="card bg-success",
 )
 
@@ -145,6 +146,6 @@ app.layout = dbc.Container(children=[
     dbc.Row([
         view_options
         ],
-        style={"min-height":"10vh"}),
+        style={"min-height":"5vh"}),
     result_component,
 ], className="bg-light")
