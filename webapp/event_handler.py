@@ -2,6 +2,7 @@ from dash.dependencies import Input, Output, State
 from webapp import app, logger
 import pandas as pd
 from webapp.figure_maker import make_figure
+from webapp.dash import main_layout, landing_page_layout
 
 from functools import partial
 
@@ -91,3 +92,12 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
 #     "onLatentClicked",
 #     Output('explore-start', 'outline'),
 #     Input('example-graph', 'clickData'), prevent_initial_call=True)
+
+@app.callback(Output('page-content', 'children'), Input('url', 'pathname'))
+def make_page(pathname):
+    if pathname == '/':
+        return landing_page_layout
+    elif pathname == '/map':
+        return main_layout
+    else:
+        return '404'

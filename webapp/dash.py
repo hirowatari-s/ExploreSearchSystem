@@ -68,7 +68,7 @@ search_component = dbc.Col([
             width=2,
         )],
         align="center")],
-    style={"min-height":"100px"},
+    style={"padding":"10px"},
     md=12,
     xl=6,
     className="card",
@@ -195,6 +195,7 @@ main_layout = dbc.Container(children=[
 
 landing_page_layout = dbc.Container(children=[
     html.H1('Hello.'),
+    search_component,
 ])
 
 
@@ -202,15 +203,3 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content'),
 ])
-
-
-from dash.dependencies import Input, Output, State
-
-@app.callback(Output('page-content', 'children'), Input('url', 'pathname'))
-def make_page(pathname):
-    if pathname == '/':
-        return landing_page_layout
-    elif pathname == '/map':
-        return main_layout
-    else:
-        return '404'
