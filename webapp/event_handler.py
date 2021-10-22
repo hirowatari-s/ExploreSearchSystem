@@ -97,26 +97,24 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
         Output('landing', 'style'),
         Output('paper-map-col', 'style'),
         Output('word-map-col', 'style'),
+        Output('search-form', 'value'),
     ], [
-        Input('url', 'pathname'),
-    # ], [
-    #     State()
-    ])
-def make_page(pathname):
+        Input('landing-explore-start', 'n_clicks'),
+    ], [
+        State('landing-search-form', 'value'),
+    ], prevent_initial_call=True)
+def make_page(n_clicks, keyword):
+    # logger.info(f"First search started with keyword: {keyword}")
     main_style = {}
     landing_style = {}
     paper_style = {"height": "100%"}
     word_style = {"height": "100%"}
 
-    if pathname == '/map':
-        main_style['display'] = 'block'
-        landing_style['display'] = 'none'
-        paper_style['display'] = 'block'
-        word_style['display'] = 'block'
-    else:
-        main_style['display'] = 'none'
-        landing_style['display'] = 'block'
-        paper_style['display'] = 'none'
-        word_style['display'] = 'none'
+    main_style['display'] = 'block'
+    landing_style['display'] = 'none'
+    paper_style['display'] = 'block'
+    word_style['display'] = 'block'
 
-    return main_style, landing_style, paper_style, word_style
+    keyword = keyword or 'Machine Learning'
+
+    return main_style, landing_style, paper_style, word_style, keyword

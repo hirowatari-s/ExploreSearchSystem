@@ -163,8 +163,6 @@ landing_page_layout = dbc.Container(children=[
 
 
 app.layout = html.Div([
-    dcc.Location(id='url', refresh=False),
-    # html.Div(id='page-content'),
     landing_page_layout,
     main_layout,
 ])
