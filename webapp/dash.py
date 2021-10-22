@@ -81,9 +81,10 @@ make_search_component = lambda landing: dbc.Col([
             width=10,
         ),
         dbc.Col(
-            html.Div(
+            dbc.Button(
                 id=f'{"landing-" if landing else ""}explore-start',
                 children="検索！",
+                color="primary",
                 className="btn btn-primary btn-lg",
             ),
             width=2,

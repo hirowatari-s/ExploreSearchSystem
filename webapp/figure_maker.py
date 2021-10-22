@@ -16,6 +16,8 @@ resolution = 10
 
 
 def prepare_materials(keyword, model_name):
+    logger.info(f"Preparing {keyword} map with {model_name}")
+
     # Learn model
     nb_epoch = 50
     sigma_max = 2.2

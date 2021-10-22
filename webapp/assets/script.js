@@ -5,19 +5,21 @@ const onLatentClicked = (_) => {
 }
 
 
-const onFirstSearchSubmitted = () => {
+const onFirstSearchSubmitted = (e) => {
     const mainStyle = document.getElementById('main').style;
     const landingStyle = document.getElementById('landing').style;
     const paperMapStyle = document.getElementById('paper-map-col').style;
     const wordMapStyle = document.getElementById('word-map-col').style;
     const landingSearchKeyword = document.getElementById('landing-search-form').value;
 
-    mainStyle.display = 'block';
+    document.getElementById('search-form').value = landingSearchKeyword;
     landingStyle.display = 'none';
     paperMapStyle.display = 'block';
     wordMapStyle.display = 'block';
-    document.getElementById('search-form').value = landingSearchKeyword;
-    // document.getElementById('explore-start').click();
+    mainStyle.display = 'block';
+    const searchButton = document.getElementById('explore-start');
+    console.dir(searchButton);
+    // searchButton.onclick();
 
-    return mainStyle;
+    return false;
 }
