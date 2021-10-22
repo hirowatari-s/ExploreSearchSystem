@@ -29,7 +29,6 @@ umatrix_modal = dbc.Modal([
 
 
 link_card = dbc.Card([
-    # html.P("", id="card-text", className="h4"),
     dbc.CardHeader("", id="card-text", className="h4"),
     html.P("", id="snippet-text", className="h5",style={"min-height":"100px"}),
     html.A(
@@ -47,6 +46,28 @@ link_card = dbc.Card([
 )
 
 
+view_options = dbc.Col([
+    dbc.Row(
+        dbc.RadioItems(
+            options=[
+                {'label': 'U-matrix 表示', 'value': 'U-matrix'},
+                {'label': 'CCP 表示', 'value': 'CCP'},
+                {'label': 'クラスタ表示', 'value': 'topic'},
+            ],
+            value='U-matrix',
+            id="viewer-selector",
+            inline=True,
+            className="h3",
+        ),
+        style=dict(height="50%", padding="10"),
+        align="center",
+    )],
+    width=12,
+    style={"padding-left":"30px", "height": "50%"},
+    className="card",
+)
+
+
 search_component = dbc.Col([
     dbc.Row([
         dbc.Col(
@@ -55,8 +76,8 @@ search_component = dbc.Col([
                 id='search-form',
                 type="text",
                 placeholder="検索ワードを入力してください",
-                style=dict(width="100%"),
-                className="input-control"),
+                style=dict(width="100%", fontSize="18px"),
+                className="form-control form-control-lg"),
             width=10,
         ),
         dbc.Col(
@@ -66,87 +87,40 @@ search_component = dbc.Col([
                 className="btn btn-primary btn-lg",
             ),
             width=2,
-        )],
+        ),
+        view_options,
+        ],
         align="center")],
     style={"padding":"10px"},
     md=12,
-    xl=6,
+    xl=8,
     className="card",
 )
 
-view_options = dbc.Col([
-    dbc.Row(
-        dbc.RadioItems(
-            options=[
-                {'label': 'SOM', 'value': 'SOM'},
-                {'label': 'UKR', 'value': 'UKR'},
-            ],
-            value='TSOM',
-            id="model-selector",
-            style={'textAlign': "center", "display": "none"},
-            className="h3",
+
+make_map = lambda id, viewer_id: dbc.Col(
+    dcc.Loading(
+        dcc.Graph(
+            id=id,
+            figure=make_figure("Machine Learning", "TSOM", viewer_id=viewer_id),
+            config=dict(displayModeBar=False)
         ),
     ),
-    dbc.Row(
-        dbc.RadioItems(
-            options=[
-                {'label': 'U-matrix 表示', 'value': 'U-matrix'},
-                {'label': 'クラスタ表示', 'value': 'topic'},
-            ],
-            value='U-matrix',
-            id="viewer-selector",
-            inline=True,
-            className="h3",
-        ),
-        style=dict(height="60%", width="100%", padding="10"),
-        align="center",
-    )],
+    style={"height": "100%",},
     md=12,
     xl=6,
-    style={"min-height":"100px", "padding-left":"30px"},
     className="card",
 )
 
 
 result_component = dbc.Row(
     [
-        dbc.Col(
-            dcc.Loading(
-                dcc.Graph(
-                    id='example-graph',
-                    figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_1"),
-                    config=dict(displayModeBar=False)
-                ),
-                id="loading"
-            ),
-            style={"height": "100%",},
-            md=12,
-            xl=9,
-            className="card",
-        ),
-        dbc.Col(
-            dcc.Loading(
-                dcc.Graph(
-                    id='example-graph2',
-                    figure=make_figure("Machine Learning", "TSOM", viewer_id="viewer_2"),
-                    config=dict(displayModeBar=False)
-                ),
-                id="loading2"
-            ),
-            style={"height": "100%",},
-            md=12,
-            xl=9,
-            className="card",
-        ),
-        dbc.Col(
-            link_card,
-            md=12,
-            xl=3
-        )
+        make_map('paper-map', 'viewer_1'),
+        make_map('word-map',  'viewer_2'),
     ],
     align="center",
     className="h-75",
-    style={"min-height": "70vh",},
+    style={"min-height": "60vh",},
     no_gutters=True
 )
 
@@ -156,39 +130,27 @@ main_layout = dbc.Container(children=[
         dbc.Col(
             html.H1(
                 id='title',
-                children='情報探索エンジン',
-                className="display-2",
+                children='論文探索エンジン',
+                className="display-4",
                 style=dict(
-                    fontFamily="Oswald, sans-serif"
+                    fontFamily="Oswald, sans-serif",
+                    textAlign="center",
                 )
             ),
             md=12,
-            xl=6
+            xl=4,
+            align="center",
         ),
-        dbc.Col(
-            html.Div(
-            children=[
-                "情報探索をサポートする Web アプリケーションです．", html.Br(),
-                "Google 検索結果を2次元にマッピングし，", html.Br(),
-                "さらに勾配計算やクラスタリングをすることによって", html.Br(),
-                "情報探索をサポートします．",
-            ],
-            className="h4"),
-            md=12,
-            xl=6
-        )
-    ], style={"min-height":"10vh", "margin-top":"10px"},
-    align="end"),
-    html.Hr(),
-    # dbc.Button(
-    #     "U-Matrix 表示とは？", id="open-umatrix-modal", className="ml-auto", n_clicks=0
-    # ),
-    umatrix_modal,
-    dbc.Row([
         search_component,
-        view_options
         ],
-        style={"min-height":"10vh"}),
+    style={"min-height":"10vh", "margin-top":"10px"},
+    align="center"),
+    html.Hr(),
+    # umatrix_modal,
+    # dbc.Row([
+    #     view_options
+    #     ],
+    #     style={"min-height":"5vh"}),
     result_component,
 ])
 
