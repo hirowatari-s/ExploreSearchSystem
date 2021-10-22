@@ -73,7 +73,7 @@ make_search_component = lambda landing: dbc.Col([
         dbc.Col(
             id=f'{"landing-" if landing else ""}search-form-div',
             children=dcc.Input(
-                id='search-form',
+                id=f'{"landing-" if landing else ""}search-form',
                 type="text",
                 placeholder="検索ワードを入力してください",
                 style=dict(width="100%", fontSize="18px"),
@@ -99,14 +99,15 @@ make_search_component = lambda landing: dbc.Col([
 
 
 make_map = lambda id, viewer_id: dbc.Col(
-    dcc.Loading(
+    id=f'{id}-col',
+    children=dcc.Loading(
         dcc.Graph(
             id=id,
             figure=make_figure("Machine Learning", "TSOM", viewer_id=viewer_id),
-            config=dict(displayModeBar=False)
+            config=dict(displayModeBar=False),
         ),
     ),
-    style={"height": "100%",},
+    style={"height": "100%", "display":"none"},
     md=12,
     xl=6,
     className="card",
@@ -152,16 +153,18 @@ main_layout = dbc.Container(children=[
     #     ],
     #     style={"min-height":"5vh"}),
     result_component,
-])
+], id='main', style=dict(display="none"))
 
 
 landing_page_layout = dbc.Container(children=[
     html.H1('Hello.'),
     make_search_component(landing=True),
-])
+], id='landing')
 
 
 app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
-    html.Div(id='page-content'),
+    # html.Div(id='page-content'),
+    landing_page_layout,
+    main_layout,
 ])

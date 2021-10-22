@@ -92,11 +92,31 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
 #     Input('example-graph', 'clickData'), prevent_initial_call=True)
 
 
-@app.callback(Output('page-content', 'children'), Input('url', 'pathname'))
+@app.callback([
+        Output('main', 'style'),
+        Output('landing', 'style'),
+        Output('paper-map-col', 'style'),
+        Output('word-map-col', 'style'),
+    ], [
+        Input('url', 'pathname'),
+    # ], [
+    #     State()
+    ])
 def make_page(pathname):
-    if pathname == '/':
-        return landing_page_layout
-    elif pathname == '/map':
-        return main_layout
+    main_style = {}
+    landing_style = {}
+    paper_style = {"height": "100%"}
+    word_style = {"height": "100%"}
+
+    if pathname == '/map':
+        main_style['display'] = 'block'
+        landing_style['display'] = 'none'
+        paper_style['display'] = 'block'
+        word_style['display'] = 'block'
     else:
-        return '404'
+        main_style['display'] = 'none'
+        landing_style['display'] = 'block'
+        paper_style['display'] = 'none'
+        word_style['display'] = 'none'
+
+    return main_style, landing_style, paper_style, word_style
