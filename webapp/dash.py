@@ -151,7 +151,7 @@ result_component = dbc.Row(
 )
 
 
-app.layout = dbc.Container(children=[
+main_layout = dbc.Container(children=[
     dbc.Row([
         dbc.Col(
             html.H1(
@@ -191,3 +191,26 @@ app.layout = dbc.Container(children=[
         style={"min-height":"10vh"}),
     result_component,
 ])
+
+
+landing_page_layout = dbc.Container(children=[
+    html.H1('Hello.'),
+])
+
+
+app.layout = html.Div([
+    dcc.Location(id='url', refresh=False),
+    html.Div(id='page-content'),
+])
+
+
+from dash.dependencies import Input, Output, State
+
+@app.callback(Output('page-content', 'children'), Input('url', 'pathname'))
+def make_page(pathname):
+    if pathname == '/':
+        return landing_page_layout
+    elif pathname == '/map':
+        return main_layout
+    else:
+        return '404'
