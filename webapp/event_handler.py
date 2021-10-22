@@ -86,35 +86,12 @@ def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_
     return link_title, url, target, page_title, snippet
 
 
-# app.clientside_callback(
-#     "onLatentClicked",
-#     Output('explore-start', 'outline'),
-#     Input('example-graph', 'clickData'), prevent_initial_call=True)
-
-
-@app.callback([
+app.clientside_callback(
+    "onFirstSearchSubmitted",
+    [
         Output('main', 'style'),
-        Output('landing', 'style'),
-        Output('paper-map-col', 'style'),
-        Output('word-map-col', 'style'),
-        Output('search-form', 'value'),
     ], [
         Input('landing-explore-start', 'n_clicks'),
     ], [
         State('landing-search-form', 'value'),
     ], prevent_initial_call=True)
-def make_page(n_clicks, keyword):
-    # logger.info(f"First search started with keyword: {keyword}")
-    main_style = {}
-    landing_style = {}
-    paper_style = {"height": "100%"}
-    word_style = {"height": "100%"}
-
-    main_style['display'] = 'block'
-    landing_style['display'] = 'none'
-    paper_style['display'] = 'block'
-    word_style['display'] = 'block'
-
-    keyword = keyword or 'Machine Learning'
-
-    return main_style, landing_style, paper_style, word_style, keyword
