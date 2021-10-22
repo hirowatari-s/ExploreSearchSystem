@@ -23,3 +23,6 @@ log:
 
 kill:
 	docker-compose down
+
+restart:
+	docker-compose restart && docker-compose logs -f
