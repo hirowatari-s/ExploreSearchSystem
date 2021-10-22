@@ -41,49 +41,49 @@ app.callback(
 ])(partial(load_learning, "viewer_2"))
 
 
-@app.callback([
-        Output('link', 'children'),
-        Output('link', 'href'),
-        Output('link', 'target'),
-        Output('card-text', 'children'),
-        Output('snippet-text', 'children'),
-    ],
-    [
-        Input('paper-map', 'hoverData'),
-    ],
-    [
-        State('search-form', 'value'),
-        State('link', 'children'),
-        State('link', 'href'),
-        State('link', 'target'),
-        State('card-text', 'children'),
-        State('snippet-text', 'children')
-    ])
-def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title, prev_snippet):
-    if hoverData:
-        if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]) \
-            or keyword == None:
-            link_title = prev_linktext
-            url = prev_url
-            target = prev_target
-            page_title = prev_page_title
-            snippet = prev_snippet
-        else:
-            csv_df = pd.read_csv(keyword+".csv")
-            index = hoverData['points'][0]['pointIndex']
-            link_title = "サイトへ Go"
-            labels = csv_df['site_name']
-            url = csv_df['URL'][index]
-            target = "_blank"
-            page_title = labels[index]
-            snippet = csv_df['snippet'][index]
-    else:
-        link_title = "マウスを当ててみよう"
-        url = "#"
-        target = "_self"
-        page_title = ""
-        snippet = ""
-    return link_title, url, target, page_title, snippet
+# @app.callback([
+#         Output('link', 'children'),
+#         Output('link', 'href'),
+#         Output('link', 'target'),
+#         Output('card-text', 'children'),
+#         Output('snippet-text', 'children'),
+#     ],
+#     [
+#         Input('paper-map', 'hoverData'),
+#     ],
+#     [
+#         State('search-form', 'value'),
+#         State('link', 'children'),
+#         State('link', 'href'),
+#         State('link', 'target'),
+#         State('card-text', 'children'),
+#         State('snippet-text', 'children')
+#     ])
+# def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title, prev_snippet):
+#     if hoverData:
+#         if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]) \
+#             or keyword == None:
+#             link_title = prev_linktext
+#             url = prev_url
+#             target = prev_target
+#             page_title = prev_page_title
+#             snippet = prev_snippet
+#         else:
+#             csv_df = pd.read_csv(keyword+".csv")
+#             index = hoverData['points'][0]['pointIndex']
+#             link_title = "サイトへ Go"
+#             labels = csv_df['site_name']
+#             url = csv_df['URL'][index]
+#             target = "_blank"
+#             page_title = labels[index]
+#             snippet = csv_df['snippet'][index]
+#     else:
+#         link_title = "マウスを当ててみよう"
+#         url = "#"
+#         target = "_self"
+#         page_title = ""
+#         snippet = ""
+#     return link_title, url, target, page_title, snippet
 
 
 app.clientside_callback(
