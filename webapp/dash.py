@@ -68,10 +68,10 @@ view_options = dbc.Col([
 )
 
 
-search_component = dbc.Col([
+make_search_component = lambda landing: dbc.Col([
     dbc.Row([
         dbc.Col(
-            id='search-form-div',
+            id=f'{"landing-" if landing else ""}search-form-div',
             children=dcc.Input(
                 id='search-form',
                 type="text",
@@ -82,13 +82,13 @@ search_component = dbc.Col([
         ),
         dbc.Col(
             html.Div(
-                id='explore-start',
+                id=f'{"landing-" if landing else ""}explore-start',
                 children="検索！",
                 className="btn btn-primary btn-lg",
             ),
             width=2,
         ),
-        view_options,
+        view_options if not landing else None,
         ],
         align="center")],
     style={"padding":"10px"},
@@ -141,7 +141,7 @@ main_layout = dbc.Container(children=[
             xl=4,
             align="center",
         ),
-        search_component,
+        make_search_component(landing=False),
         ],
     style={"min-height":"10vh", "margin-top":"10px"},
     align="center"),
@@ -157,7 +157,7 @@ main_layout = dbc.Container(children=[
 
 landing_page_layout = dbc.Container(children=[
     html.H1('Hello.'),
-    search_component,
+    make_search_component(landing=True),
 ])
 
 
