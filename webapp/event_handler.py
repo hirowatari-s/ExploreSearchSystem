@@ -69,6 +69,7 @@ def make_page(n_clicks, keyword):
 
 
 
+import dash
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
@@ -93,13 +94,20 @@ def make_paper_component(title, abst, url):
 )
 def make_paper_list(clickData, keyword):
     logger.debug('make_paper_list')
+
+    ctx = dash.callback_context
+    map_name = ctx.triggered[0]['prop_id'].split('.')[0]
+    logger.info(f"map_name: {map_name}")
+
     df, labels, _, history, _ = prepare_materials(keyword, 'TSOM')
     clicked_point = [[clickData['points'][0]['x'], clickData['points'][0]['y']]] if clickData else [[0, 0]]
     clicked_point = np.array(clicked_point)
-    dists = dist.cdist(history['Z1'], clicked_point)
-    paper_idxs = np.argsort(dists, axis=0)[:3].flatten()
-    paper_labels = labels[0].values.tolist()
-    layout = [make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i]) for i in paper_idxs]
-    print(layout)
+    if map_name == 'paper-map':
+        dists = dist.cdist(history['Z1'], clicked_point)
+        paper_idxs = np.argsort(dists, axis=0)[:3].flatten()
+        paper_labels = labels[0].values.tolist()
+        layout = [make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i]) for i in paper_idxs]
+    else:
+        pass
 
     return layout
