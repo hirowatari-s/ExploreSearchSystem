@@ -1,9 +1,6 @@
 from dash.dependencies import Input, Output, State
 from webapp import app, logger
-import pandas as pd
 from webapp.figure_maker import make_figure
-from webapp.dash import main_layout, landing_page_layout
-
 from functools import partial
 
 
