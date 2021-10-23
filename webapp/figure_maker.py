@@ -1,7 +1,8 @@
 import pathlib
 import pandas as pd
 from fetch_arxiv import fetch_search_result
-from make_BoW import make_bow
+# from make_BoW import make_bow
+from preprocessing_of_words import make_bow
 import numpy as np
 import pickle
 import plotly.graph_objects as go
@@ -30,21 +31,24 @@ def prepare_materials(keyword, model_name):
     if pathlib.Path(keyword+".csv").exists():
         logger.debug("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
-        labels = csv_df['site_name']
+        paper_labels = csv_df['site_name']
         rank = csv_df['ranking']
         X = np.load("data/tmp/" + keyword + ".npy")
+        word_labels = np.load("data/tmp/" + keyword + "_label.npy")
     else:
         logger.debug("Fetch data to learn")
         csv_df = fetch_search_result(keyword)
-        X , labels, _ = make_bow(csv_df)
+        paper_labels = csv_df['site_name']
+        X , word_labels = make_bow(csv_df)
         rank = np.arange(1, X.shape[0]+1)  # FIXME
         csv_df.to_csv(keyword+".csv")
         feature_file = 'data/tmp/'+keyword+'.npy'
-        label_file = 'data/tmp/'+keyword+'_label.npy'
+        word_label_file = 'data/tmp/'+keyword+'_label.npy'
         np.save(feature_file, X)
-        np.save(label_file, labels)
+        np.save(word_label_file, word_labels)
 
 
+    labels = (paper_labels, word_labels)
     model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
     if pathlib.Path(model_save_path).exists():
         logger.debug("Model already learned")
@@ -200,8 +204,10 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
     logger.debug(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
+        labels = labels[0]
     elif viewer_id == 'viewer_2':
         Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
+        labels = labels[1]
     else:
         logger.debug("Set viewer_id")
 
