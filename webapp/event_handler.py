@@ -1,41 +1,41 @@
+import dash
 from dash.dependencies import Input, Output, State
 from webapp import app, logger
 from webapp.figure_maker import make_figure
 from functools import partial
 
-
-def load_learning(viewer_id, n_clicks, viewer_name, clickData, keyword, prev_fig):
-    logger.debug(f"graph '{viewer_name}' clicked")
-    logger.debug(f"clickData: {clickData}")
-    keyword = keyword or "Machine Learning"
-    if clickData and "points" in clickData and "pointIndex" in clickData["points"][0]:
-        viewer_name = "CCP"
-    return make_figure(keyword, viewer_name, viewer_id, clickData)
-
-
-app.callback(
+@app.callback(
     Output('paper-map', 'figure'),
-    [
-        Input('explore-start', 'n_clicks'),
-        Input('viewer-selector', 'value'),
-        Input('word-map', 'clickData'),
-    ],
-    [
-        State('search-form', 'value'),
-        State('paper-map', 'figure'),
-])(partial(load_learning, "viewer_1"))
-
-app.callback(
     Output('word-map', 'figure'),
     [
         Input('explore-start', 'n_clicks'),
         Input('viewer-selector', 'value'),
         Input('paper-map', 'clickData'),
+        Input('word-map', 'clickData'),
     ],
     [
         State('search-form', 'value'),
+        State('paper-map', 'figure'),
         State('word-map', 'figure'),
-])(partial(load_learning, "viewer_2"))
+])
+
+def load_learning(n_clicks, viewer_name, p_clickData, w_clickData, keyword, p_prev_fig, w_prev_fig):
+    logger.debug(f"p_clickData: {p_clickData}")
+    logger.debug(f"w_clickData: {w_clickData}")
+    ctx = dash.callback_context
+    print(ctx.triggered[0]['prop_id'])
+    print(type(ctx.triggered[0]['prop_id']))
+
+    viewer_1_name, viewer_2_name = viewer_name, viewer_name 
+    if ctx.triggered[0]['prop_id'] == 'paper-map.clickData':
+        if p_clickData and "points" in p_clickData and "pointIndex" in p_clickData["points"][0]:
+            viewer_2_name = 'CCP' 
+    elif ctx.triggered[0]['prop_id'] == 'word-map.clickData':
+        if w_clickData and "points" in w_clickData and "pointIndex" in w_clickData["points"][0]:
+            viewer_1_name = 'CCP' 
+
+    keyword = keyword or "Machine Learning"
+    return make_figure(keyword, viewer_1_name, 'viewer_1', w_clickData), make_figure(keyword, viewer_2_name, 'viewer_2', p_clickData)
 
 
 @app.callback([
