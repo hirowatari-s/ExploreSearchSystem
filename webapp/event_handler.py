@@ -1,8 +1,6 @@
 from dash.dependencies import Input, Output, State
 from webapp import app, logger
-import pandas as pd
 from webapp.figure_maker import make_figure
-
 from functools import partial
 
 
@@ -41,51 +39,30 @@ app.callback(
 
 
 @app.callback([
-        Output('link', 'children'),
-        Output('link', 'href'),
-        Output('link', 'target'),
-        Output('card-text', 'children'),
-        Output('snippet-text', 'children'),
-    ],
-    [
-        Input('paper-map', 'hoverData'),
-    ],
-    [
-        State('search-form', 'value'),
-        State('link', 'children'),
-        State('link', 'href'),
-        State('link', 'target'),
-        State('card-text', 'children'),
-        State('snippet-text', 'children')
-    ])
-def update_title(hoverData, keyword, prev_linktext, prev_url, prev_target, prev_page_title, prev_snippet):
-    if hoverData:
-        if not ("points" in hoverData and "pointIndex" in hoverData["points"][0]) \
-            or keyword == None:
-            link_title = prev_linktext
-            url = prev_url
-            target = prev_target
-            page_title = prev_page_title
-            snippet = prev_snippet
-        else:
-            csv_df = pd.read_csv(keyword+".csv")
-            index = hoverData['points'][0]['pointIndex']
-            link_title = "サイトへ Go"
-            labels = csv_df['site_name']
-            url = csv_df['URL'][index]
-            target = "_blank"
-            page_title = labels[index]
-            snippet = csv_df['snippet'][index]
-    else:
-        link_title = "マウスを当ててみよう"
-        url = "#"
-        target = "_self"
-        page_title = ""
-        snippet = ""
-    return link_title, url, target, page_title, snippet
+        Output('main', 'style'),
+        Output('landing', 'style'),
+        Output('paper-map-col', 'style'),
+        Output('word-map-col', 'style'),
+        Output('search-form', 'value'),
+        Output('viewer-selector', 'value'),
+    ], [
+        Input('landing-explore-start', 'n_clicks'),
+    ], [
+        State('landing-search-form', 'value'),
+    ], prevent_initial_call=True)
+def make_page(n_clicks, keyword):
+    logger.info(f"first search started with keyword: {keyword}")
+    main_style = {}
+    landing_style = {}
+    paper_style = {"height": "100%"}
+    word_style = {"height": "100%"}
 
+    main_style['display'] = 'block'
+    landing_style['display'] = 'none'
+    paper_style['display'] = 'block'
+    word_style['display'] = 'block'
 
-# app.clientside_callback(
-#     "onLatentClicked",
-#     Output('explore-start', 'outline'),
-#     Input('paper-map', 'clickData'), prevent_initial_call=True)
+    keyword = keyword or 'Machine Learning'
+
+    return main_style, landing_style, paper_style, word_style, keyword, 'CCP'
+

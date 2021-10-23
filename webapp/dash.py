@@ -68,12 +68,12 @@ view_options = dbc.Col([
 )
 
 
-search_component = dbc.Col([
+make_search_component = lambda landing: dbc.Col([
     dbc.Row([
         dbc.Col(
-            id='search-form-div',
+            id=f'{"landing-" if landing else ""}search-form-div',
             children=dcc.Input(
-                id='search-form',
+                id=f'{"landing-" if landing else ""}search-form',
                 type="text",
                 placeholder="検索ワードを入力してください",
                 style=dict(width="100%", fontSize="18px"),
@@ -81,18 +81,18 @@ search_component = dbc.Col([
             width=10,
         ),
         dbc.Col(
-            html.Div(
-                id='explore-start',
+            dbc.Button(
+                id=f'{"landing-" if landing else ""}explore-start',
                 children="検索！",
+                color="primary",
                 className="btn btn-primary btn-lg",
             ),
             width=2,
         ),
-        view_options,
+        view_options if not landing else None,
         ],
-        align="center",
-        style=dict(minHeight="100px"))],
-    style={"min-height":"100px", "height":"100%"},
+        align="center")],
+    style={"padding":"10px"},
     md=12,
     xl=8,
     className="card",
@@ -100,14 +100,15 @@ search_component = dbc.Col([
 
 
 make_map = lambda id, viewer_id: dbc.Col(
-    dcc.Loading(
+    id=f'{id}-col',
+    children=dcc.Loading(
         dcc.Graph(
             id=id,
             figure=make_figure("Machine Learning", "TSOM", viewer_id=viewer_id),
-            config=dict(displayModeBar=False)
+            config=dict(displayModeBar=False),
         ),
     ),
-    style={"height": "100%",},
+    style={"height": "100%", "display":"none"},
     md=12,
     xl=6,
     className="card",
@@ -126,7 +127,7 @@ result_component = dbc.Row(
 )
 
 
-app.layout = dbc.Container(children=[
+main_layout = dbc.Container(children=[
     dbc.Row([
         dbc.Col(
             html.H1(
@@ -142,7 +143,7 @@ app.layout = dbc.Container(children=[
             xl=4,
             align="center",
         ),
-        search_component,
+        make_search_component(landing=False),
         ],
     style={"min-height":"10vh", "margin-top":"10px"},
     align="center"),
@@ -153,5 +154,16 @@ app.layout = dbc.Container(children=[
     #     ],
     #     style={"min-height":"5vh"}),
     result_component,
-    html.Hr(),
-], className="bg-light")
+], id='main', style=dict(display="none"))
+
+
+landing_page_layout = dbc.Container(children=[
+    html.H1('Hello.'),
+    make_search_component(landing=True),
+], id='landing')
+
+
+app.layout = html.Div([
+    landing_page_layout,
+    main_layout,
+])

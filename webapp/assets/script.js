@@ -1,5 +1,3 @@
-const onLatentClicked = (_) => {
-    const url = document.getElementById("link").href;
-    if (url != "#")
-        window.open(url);
+const sampleFunction = (_) => {
+    console.log('Hello World !')
 }
