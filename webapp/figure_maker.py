@@ -1,7 +1,6 @@
 import pathlib
 import pandas as pd
 from fetch_arxiv import fetch_search_result
-# from make_BoW import make_bow
 from preprocessing_of_words import make_bow
 import numpy as np
 import pickle

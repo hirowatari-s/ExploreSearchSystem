@@ -1,6 +1,6 @@
 from dash.dependencies import Input, Output, State
 from webapp import app, logger
-from webapp.figure_maker import make_figure, prepare_materials
+from webapp.figure_maker import make_figure, prepare_materials, get_bmu
 from functools import partial
 
 import numpy as np
@@ -86,13 +86,14 @@ def make_paper_component(title, abst, url):
     Output('paper-list', 'children'),
     [
         Input('paper-map', 'clickData'),
+        Input('word-map', 'clickData'),
     ],
     [
         State('search-form', 'value'),
     ],
     prevent_initial_call=True
 )
-def make_paper_list(clickData, keyword):
+def make_paper_list(paperClickData, wordClickData, keyword):
     logger.debug('make_paper_list')
 
     ctx = dash.callback_context
@@ -100,14 +101,28 @@ def make_paper_list(clickData, keyword):
     logger.info(f"map_name: {map_name}")
 
     df, labels, _, history, _ = prepare_materials(keyword, 'TSOM')
-    clicked_point = [[clickData['points'][0]['x'], clickData['points'][0]['y']]] if clickData else [[0, 0]]
-    clicked_point = np.array(clicked_point)
+    paper_labels = labels[0].values.tolist()
     if map_name == 'paper-map':
+        clicked_point = [[paperClickData['points'][0]['x'], paperClickData['points'][0]['y']]] if paperClickData else [[0, 0]]
+        clicked_point = np.array(clicked_point)
         dists = dist.cdist(history['Z1'], clicked_point)
         paper_idxs = np.argsort(dists, axis=0)[:3].flatten()
-        paper_labels = labels[0].values.tolist()
-        layout = [make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i]) for i in paper_idxs]
     else:
-        pass
+        clicked_point = [[wordClickData['points'][0]['x'], wordClickData['points'][0]['y']]] if wordClickData else [[0, 0]]
+        clicked_point = np.array(clicked_point)
+        logger.debug(clicked_point)
+        y = history['Y'][:, get_bmu(history['Zeta'], wordClickData)]
+        # y = history['Y'][get_bmu(history['Zeta'], wordClickData), :]
+        target_nodes = (-y).flatten().argsort()[:3]
+        logger.debug(f"target_nodes: {target_nodes}")
+        paper_idxs = []
+        for k in target_nodes:
+            _dists = dist.cdist(history['Z1'], history['Zeta'][k, None])
+            _paper_idxs = np.argsort(_dists, axis=0)[:3].flatten().tolist()
+            paper_idxs.extend(_paper_idxs)
+        paper_idxs = list(set(paper_idxs))
+    logger.debug(f"Paper indexes {paper_idxs}")
+    layout = [make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i]) for i in paper_idxs]
+
 
     return layout
