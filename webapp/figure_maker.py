@@ -61,7 +61,7 @@ def prepare_materials(keyword, model_name):
             sigma_min=sigma_min,
             model_name=model_name,
             tau=tau,
-            # init='PCA'
+            init='parafac'
         )
         mm.fit(nb_epoch=nb_epoch)
         history = dict(

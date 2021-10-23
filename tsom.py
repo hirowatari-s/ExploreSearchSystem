@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 from scipy.spatial import distance as dist
-from sklearn.decomposition import PCA
+from tensorly.decomposition import parafac
 
 
 class ManifoldModeling:
@@ -107,6 +107,9 @@ class ManifoldModeling:
         if isinstance(init, str) and init in 'random':
             self.Z1 = np.random.rand(self.N1, self.latent_dim1) * 2.0 - 1.0
             self.Z2 = np.random.rand(self.N2, self.latent_dim2) * 2.0 - 1.0
+        elif isinstance(init, str) and init in 'parafac':
+            model_z = parafac(self.X.reshape(self.N1, self.N2), rank=2)
+            self.Z1, self.Z2 = model_z.factors
         elif isinstance(init, (tuple, list)) and len(init) == 2:
             if isinstance(init[0], np.ndarray) and init[0].shape == (self.N1, self.latent_dim1):
                 self.Z1 = init[0].copy()
@@ -204,3 +207,28 @@ class ManifoldModeling:
             self.history['sigma1'][epoch] = sigma1
             self.history['sigma2'][epoch] = sigma2
             self.history['sigma'][epoch] = sigma2
+
+
+if __name__ == '__main__':
+    print("main")
+    nb_epoch = 50
+    sigma_max = 2.2
+    sigma_min = 0.2
+    tau = 50
+    latent_dim = 2
+    seed = 1
+    resolution=10
+    model_name="TSOM"
+    
+    X = np.array(np.arange(20).reshape(5,4), dtype=np.float64)    
+    mm = ManifoldModeling(
+            X,
+            latent_dim=latent_dim,
+            resolution=resolution,
+            sigma_max=sigma_max,
+            sigma_min=sigma_min,
+            model_name=model_name,
+            tau=tau,
+            init='parafac'
+        )
+    mm.fit(nb_epoch=nb_epoch)
