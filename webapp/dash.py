@@ -126,6 +126,11 @@ result_component = dbc.Row(
     no_gutters=True
 )
 
+paper_list = html.Div(
+    id='paper-list',
+    children=[]
+)
+
 
 main_layout = dbc.Container(children=[
     dbc.Row([
@@ -154,6 +159,8 @@ main_layout = dbc.Container(children=[
     #     ],
     #     style={"min-height":"5vh"}),
     result_component,
+    html.Hr(),
+    paper_list,
 ], id='main', style=dict(display="none"))
 
 
