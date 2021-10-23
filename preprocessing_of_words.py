@@ -33,6 +33,7 @@ def preprocessing_tag_and_stopwords(s):
 
 def make_bow(df):
     s = df['snippet']
+    paper_label = df['site_name'].values
     pos = preprocessing_tag_and_stopwords(s)
 
     vectorizer = CountVectorizer(max_df=50, min_df=3)
@@ -43,9 +44,9 @@ def make_bow(df):
     tfidf = tfidf_transformer.fit_transform(X.toarray())
 
     features = np.array(tfidf.todense())
-    return features, word_label
+    return features, word_label, paper_label
 
 if __name__ == '__main__':
     # Load file
     csv_df = pd.read_csv("~/Downloads/Unsupervised Kernel Regression.csv")
-    features, word_label = make_bow(csv_df)
+    features, word_label, paper_label = make_bow(csv_df)
