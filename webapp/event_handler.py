@@ -7,7 +7,7 @@ from webapp.dash import main_layout, landing_page_layout
 from functools import partial
 
 
-def load_learning(viewer_id, n_clicks, landing_n_clicks, viewer_name, clickData, keyword, prev_fig):
+def load_learning(viewer_id, n_clicks, viewer_name, clickData, keyword, prev_fig):
     logger.debug(f"graph '{viewer_name}' clicked")
     logger.debug(f"clickData: {clickData}")
     keyword = keyword or "Machine Learning"
@@ -20,7 +20,6 @@ app.callback(
     Output('paper-map', 'figure'),
     [
         Input('explore-start', 'n_clicks'),
-        Input('landing-explore-start', 'n_clicks'),
         Input('viewer-selector', 'value'),
         Input('word-map', 'clickData'),
     ],
@@ -33,7 +32,6 @@ app.callback(
     Output('word-map', 'figure'),
     [
         Input('explore-start', 'n_clicks'),
-        Input('landing-explore-start', 'n_clicks'),
         Input('viewer-selector', 'value'),
         Input('paper-map', 'clickData'),
     ],
