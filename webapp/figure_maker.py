@@ -106,16 +106,20 @@ def draw_umatrix(fig, X, Z, sigma, u_resolution, labels):
     return fig
 
 
-def draw_topics(fig, Y, n_components):
+def draw_topics(fig, Y, n_components, viewer_id):
     # decomposed by Topic
+    Y = Y.reshape(Y.shape[0], Y.shape[0])
     model_t3 = NMF(
         n_components=n_components,
-        init='random',
+        init='nndsvd',
         random_state=2,
         max_iter=300,
         solver='cd'
     )
     W = model_t3.fit_transform(Y)
+    if viewer_id == 'viewer_2':
+        W = model_t3.components_.T
+        # 意味としては,H = model_t3.components_.T
 
     # For mask and normalization(min:0, max->1)
     mask_std = np.zeros(W.shape)
@@ -238,7 +242,7 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
 
     if viewer_name=="topic":
         n_components = 5
-        fig = draw_topics(fig, Y, n_components)
+        fig = draw_topics(fig, Y, n_components, viewer_id)
     elif viewer_name=="CCP":
         fig = draw_ccp(fig, Y, history['Zeta'], history['resolution'], clicked_z, viewer_id)
     else:
