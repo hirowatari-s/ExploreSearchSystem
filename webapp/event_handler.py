@@ -73,6 +73,14 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 
+
+def make_paper_component(title, abst, url):
+    return html.Div([
+        html.A(title, href=url, target='blank'),
+        html.P(abst)
+    ])
+
+
 @app.callback(
     Output('paper-list', 'children'),
     [
@@ -85,13 +93,13 @@ import dash_html_components as html
 )
 def make_paper_list(clickData, keyword):
     logger.debug('make_paper_list')
-    _, labels, _, history, _ = prepare_materials(keyword, 'TSOM')
+    df, labels, _, history, _ = prepare_materials(keyword, 'TSOM')
     clicked_point = [[clickData['points'][0]['x'], clickData['points'][0]['y']]] if clickData else [[0, 0]]
     clicked_point = np.array(clicked_point)
     dists = dist.cdist(history['Z1'], clicked_point)
     paper_idxs = np.argsort(dists, axis=0)[:3].flatten()
     paper_labels = labels[0].values.tolist()
-    layout = [f"{i}:{paper_labels[i]}" for i in paper_idxs]
+    layout = [make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i]) for i in paper_idxs]
     print(layout)
 
     return layout
