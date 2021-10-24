@@ -180,12 +180,13 @@ def get_bmu(Zeta, clickData):
     return unit[0]
 
 
-def draw_scatter(fig, Z, labels, rank):
+def draw_scatter(fig, Z, labels, rank, viewer_name):
+    logger.debug(f"viewer_name: {viewer_name}")
     fig.add_trace(
         go.Scatter(
             x=Z[:, 0],
             y=Z[:, 1],
-            mode="markers",
+            mode=f"markers{'+text' if viewer_name == 'viewer_1' else ''}",
             name='lv',
             marker=dict(
                 size=rank[::-1],
@@ -193,10 +194,12 @@ def draw_scatter(fig, Z, labels, rank):
                 sizeref=2. * max(rank) / (40. ** 2),
                 sizemin=4,
             ),
-            text=labels,
+            text=(labels if viewer_name == 'viewer_2' else rank),
             hoverlabel=dict(
                 bgcolor="rgba(255, 255, 255, 0.75)",
             ),
+            # textposition=('top center' if show_label else None),
+            textposition='top center',
         )
     )
     return fig
@@ -207,10 +210,10 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
     logger.debug(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
-        labels = labels[0]
+        labels = labels[0].tolist()
     elif viewer_id == 'viewer_2':
         Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
-        labels = labels[1]
+        labels = labels[1].tolist()
     else:
         logger.debug("Set viewer_id")
 
@@ -250,7 +253,7 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
         # u_resolution = 100
         # fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
-    fig = draw_scatter(fig, Z, labels, rank)
+    fig = draw_scatter(fig, Z, labels, rank, viewer_id)
 
     fig.update_coloraxes(
         showscale=False

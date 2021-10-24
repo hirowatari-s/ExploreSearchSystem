@@ -75,8 +75,9 @@ import dash_core_components as dcc
 import dash_html_components as html
 
 
-def make_paper_component(title, abst, url):
+def make_paper_component(title, abst, url, rank):
     return html.Div([
+        rank,
         html.A(title, href=url, target='blank'),
         html.P(abst)
     ])
@@ -122,7 +123,9 @@ def make_paper_list(paperClickData, wordClickData, keyword):
             paper_idxs.extend(_paper_idxs)
         paper_idxs = list(set(paper_idxs))
     logger.debug(f"Paper indexes {paper_idxs}")
-    layout = [make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i]) for i in paper_idxs]
+    layout = [
+        make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i], df['ranking'][i]) for i in paper_idxs
+    ]
 
 
     return layout
