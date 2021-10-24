@@ -131,7 +131,7 @@ paper_list = html.Div(
     children=[],
     style=dict(
         borderWidth="10px",
-        borderColor="black",
+        borderColor="white",
         borderStyle="solid",
         borderRadius="5px",
     ),

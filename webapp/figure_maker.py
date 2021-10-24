@@ -13,6 +13,8 @@ from webapp import logger
 
 
 resolution = 10
+PAPER_COLOR = '#d3f284'
+WORD_COLOR = '#fffa73'
 
 
 def prepare_materials(keyword, model_name):
@@ -259,7 +261,7 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
         showscale=False
     )
     fig.update_layout(
-        plot_bgcolor=('#d3f284' if viewer_id == 'viewer_1' else '#fffa73')
+        plot_bgcolor=(PAPER_COLOR if viewer_id == 'viewer_1' else WORD_COLOR)
     )
     fig.update(
         layout_coloraxis_showscale=False,

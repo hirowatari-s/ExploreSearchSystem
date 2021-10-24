@@ -1,6 +1,9 @@
 from dash.dependencies import Input, Output, State
 from webapp import app, logger
-from webapp.figure_maker import make_figure, prepare_materials, get_bmu
+from webapp.figure_maker import (
+    make_figure, prepare_materials, get_bmu,
+    PAPER_COLOR, WORD_COLOR,
+)
 from functools import partial
 
 import numpy as np
@@ -83,18 +86,21 @@ def make_paper_component(title, abst, url, rank):
     ])
 
 
-@app.callback(
-    Output('paper-list', 'children'),
+@app.callback([
+        Output('paper-list', 'children'),
+        Output('paper-list', 'style'),
+    ],
     [
         Input('paper-map', 'clickData'),
         Input('word-map', 'clickData'),
     ],
     [
         State('search-form', 'value'),
+        State('paper-list', 'style'),
     ],
     prevent_initial_call=True
 )
-def make_paper_list(paperClickData, wordClickData, keyword):
+def make_paper_list(paperClickData, wordClickData, keyword, style):
     logger.debug('make_paper_list')
 
     ctx = dash.callback_context
@@ -113,7 +119,6 @@ def make_paper_list(paperClickData, wordClickData, keyword):
         clicked_point = np.array(clicked_point)
         logger.debug(clicked_point)
         y = history['Y'][:, get_bmu(history['Zeta'], wordClickData)]
-        # y = history['Y'][get_bmu(history['Zeta'], wordClickData), :]
         target_nodes = (-y).flatten().argsort()[:3]
         logger.debug(f"target_nodes: {target_nodes}")
         paper_idxs = []
@@ -128,6 +133,6 @@ def make_paper_list(paperClickData, wordClickData, keyword):
     layout = [
         make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i], df['ranking'][i]) for i in paper_idxs
     ]
+    style['borderColor'] = PAPER_COLOR if map_name == 'paper-map' else WORD_COLOR
 
-
-    return layout
+    return layout, style
