@@ -121,7 +121,9 @@ def make_paper_list(paperClickData, wordClickData, keyword):
             _dists = dist.cdist(history['Z1'], history['Zeta'][k, None])
             _paper_idxs = np.argsort(_dists, axis=0)[:3].flatten().tolist()
             paper_idxs.extend(_paper_idxs)
-        paper_idxs = list(set(paper_idxs))
+        seen = set()
+        seen_add = seen.add
+        paper_idxs = [idx for idx in paper_idxs if not (idx in seen or seen_add(idx))]
     logger.debug(f"Paper indexes {paper_idxs}")
     layout = [
         make_paper_component(paper_labels[i], df['snippet'][i], df['URL'][i], df['ranking'][i]) for i in paper_idxs
