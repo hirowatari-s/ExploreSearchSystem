@@ -195,10 +195,10 @@ def draw_scatter(fig, Z, labels, rank, viewer_name):
                 sizemin=4,
             ),
             text=(labels if viewer_name == 'viewer_2' else rank),
+            hovertext=labels,
             hoverlabel=dict(
                 bgcolor="rgba(255, 255, 255, 0.75)",
             ),
-            # textposition=('top center' if show_label else None),
             textposition='top center',
         )
     )
@@ -273,4 +273,3 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
     )
 
     return fig
-
