@@ -188,7 +188,7 @@ def draw_scatter(fig, Z, labels, rank, viewer_name):
         go.Scatter(
             x=Z[:, 0],
             y=Z[:, 1],
-            mode=f"markers{'+text' if viewer_name == 'viewer_1' else ''}",
+            mode=f"markers+text",
             name='lv',
             marker=dict(
                 size=rank[::-1],
@@ -254,6 +254,9 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
         NotImplemented
         # u_resolution = 100
         # fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
+
+    if viewer_id == 'viewer_2':
+        pass
 
     fig = draw_scatter(fig, Z, labels, rank, viewer_id)
 
