@@ -267,12 +267,13 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
     #     invisible_z_idx = [idx for idx, z in enumerate(Z) if not np.all([np.invert(np.isclose(z, zeta)) for zeta in displayed_zeta]) ]
     #     logger.debug(f"invisible_z_idx: {invisible_z_idx}")
     #     labels[invisible_z_idx] = ''
-    if viewer_id == 'viewer_2' and clicked_z == None:  # FIXME: Remove second condition
+    if viewer_id == 'viewer_2' and not clicked_z == None:  # FIXME: Remove second condition
         _, unique_Z_idx = np.unique(Z, axis=0, return_index=True)
         logger.debug(unique_Z_idx)
         duplicated_Z_idx = np.setdiff1d(np.arange(Z.shape[0]), unique_Z_idx)
         # group = groupby(duplicated_Z_idx, key=lambda i: tuple(Z[i]))
         # invisible_Z_idx = [next(v) for v in group.values()]
+        labels = np.array(labels)
         labels[duplicated_Z_idx] = ''
 
 
