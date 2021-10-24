@@ -128,7 +128,13 @@ result_component = dbc.Row(
 
 paper_list = html.Div(
     id='paper-list',
-    children=[]
+    children=[],
+    style=dict(
+        borderWidth="10px",
+        borderColor="black",
+        borderStyle="solid",
+        borderRadius="5px",
+    ),
 )
 
 
