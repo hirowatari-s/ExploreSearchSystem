@@ -259,7 +259,7 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
         showscale=False
     )
     fig.update_layout(
-        plot_bgcolor="white",
+        plot_bgcolor=('#d3f284' if viewer_id == 'viewer_1' else '#fffa73')
     )
     fig.update(
         layout_coloraxis_showscale=False,
