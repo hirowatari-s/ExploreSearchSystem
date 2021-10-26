@@ -19,7 +19,8 @@ def load_learning(viewer_id, n_clicks, viewer_name, clickData, keyword, prev_fig
     return make_figure(keyword, viewer_name, viewer_id, clickData)
 
 
-app.callback(Output('paper-map', 'figure'),
+app.callback(
+    Output('paper-map', 'figure'),
     [
         Input('explore-start', 'n_clicks'),
         Input('viewer-selector', 'value'),
@@ -30,7 +31,8 @@ app.callback(Output('paper-map', 'figure'),
         State('paper-map', 'figure'),
 ])(partial(load_learning, "viewer_1"))
 
-app.callback(Output('word-map', 'figure'),
+app.callback(
+    Output('word-map', 'figure'),
     [
         Input('explore-start', 'n_clicks'),
         Input('viewer-selector', 'value'),
