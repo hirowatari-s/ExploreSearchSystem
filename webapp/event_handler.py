@@ -86,8 +86,9 @@ def make_paper_component(title, abst, url, rank):
 
 
 @app.callback([
-        Output('paper-list', 'children'),
-        Output('paper-list', 'style'),
+        Output('paper-list-title', 'children'),
+        Output('paper-list-components', 'children'),
+        Output('paper-list-components', 'style'),
     ],
     [
         Input('paper-map', 'clickData'),
@@ -95,7 +96,7 @@ def make_paper_component(title, abst, url, rank):
     ],
     [
         State('search-form', 'value'),
-        State('paper-list', 'style'),
+        State('paper-list-components', 'style'),
     ],
     prevent_initial_call=True
 )
@@ -107,17 +108,25 @@ def make_paper_list(paperClickData, wordClickData, keyword, style):
     logger.info(f"map_name: {map_name}")
 
     df, labels, _, history, _ = prepare_materials(keyword, 'TSOM')
+    Z2 = history['Z2']
     paper_labels = labels[0].values.tolist()
+    word_labels = labels[1].tolist()
     if map_name == 'paper-map':
         clicked_point = [[paperClickData['points'][0]['x'], paperClickData['points'][0]['y']]] if paperClickData else [[0, 0]]
         clicked_point = np.array(clicked_point)
         dists = dist.cdist(history['Z1'], clicked_point)
         paper_idxs = np.argsort(dists, axis=0)[:3].flatten()
+        title = "クリックした付近の論文"
     else:
         clicked_point = [[wordClickData['points'][0]['x'], wordClickData['points'][0]['y']]] if wordClickData else [[0, 0]]
         clicked_point = np.array(clicked_point)
         logger.debug(clicked_point)
-        y = history['Y'][:, get_bmu(history['Zeta'], wordClickData)]
+        bmu = get_bmu(history['Zeta'], wordClickData)
+        y = history['Y'][:, bmu]
+        word_idx = np.argmin(dist.cdist(Z2, history['Zeta'][bmu][None, :]), axis=0)
+        logger.debug(f"word_idx: {word_idx}")
+        word = word_labels[word_idx[0]]
+        title = f"{word} を多く含む論文"
         target_nodes = (-y).flatten().argsort()[:3]
         logger.debug(f"target_nodes: {target_nodes}")
         paper_idxs = []
@@ -134,4 +143,4 @@ def make_paper_list(paperClickData, wordClickData, keyword, style):
     ]
     style['borderColor'] = PAPER_COLOR if map_name == 'paper-map' else WORD_COLOR
 
-    return layout, style
+    return title, layout, style
