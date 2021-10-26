@@ -5,7 +5,6 @@ from webapp.figure_maker import (
     make_figure, prepare_materials, get_bmu,
     PAPER_COLOR, WORD_COLOR,
 )
-from functools import partial
 
 @app.callback(
     Output('paper-map', 'figure'),
@@ -73,8 +72,9 @@ def make_page(n_clicks, keyword):
 
 import dash
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
 import dash_html_components as html
+import numpy as np
+from scipy.spatial import distance as dist
 
 
 def make_paper_component(title, abst, url, rank):
