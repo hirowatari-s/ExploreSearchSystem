@@ -1,7 +1,7 @@
 import pathlib
 import pandas as pd
 from fetch_arxiv import fetch_search_result
-from make_BoW import make_bow
+from preprocessing_of_words import make_bow
 import numpy as np
 import pickle
 import plotly.graph_objects as go
@@ -10,9 +10,12 @@ from sklearn.decomposition import NMF
 from scipy.spatial import distance as dist
 from Grad_norm import Grad_Norm
 from webapp import logger
+from itertools import groupby
 
 
 resolution = 10
+PAPER_COLOR = '#d3f284'
+WORD_COLOR = '#fffa73'
 
 
 def prepare_materials(keyword, model_name):
@@ -30,21 +33,24 @@ def prepare_materials(keyword, model_name):
     if pathlib.Path(keyword+".csv").exists():
         logger.debug("Data exists")
         csv_df = pd.read_csv(keyword+".csv")
-        labels = csv_df['site_name']
+        paper_labels = csv_df['site_name']
         rank = csv_df['ranking']
         X = np.load("data/tmp/" + keyword + ".npy")
+        word_labels = np.load("data/tmp/" + keyword + "_label.npy")
     else:
         logger.debug("Fetch data to learn")
         csv_df = fetch_search_result(keyword)
-        X , labels, _ = make_bow(csv_df)
+        paper_labels = csv_df['site_name']
+        X , word_labels = make_bow(csv_df)
         rank = np.arange(1, X.shape[0]+1)  # FIXME
         csv_df.to_csv(keyword+".csv")
         feature_file = 'data/tmp/'+keyword+'.npy'
-        label_file = 'data/tmp/'+keyword+'_label.npy'
+        word_label_file = 'data/tmp/'+keyword+'_label.npy'
         np.save(feature_file, X)
-        np.save(label_file, labels)
+        np.save(word_label_file, word_labels)
 
 
+    labels = (paper_labels, word_labels)
     model_save_path = 'data/tmp/'+ keyword +'_'+ model_name +'_history.pickle'
     if pathlib.Path(model_save_path).exists():
         logger.debug("Model already learned")
@@ -161,7 +167,7 @@ def draw_ccp(fig, Y, Zeta, resolution, clickedData, viewer_id):
             y=np.linspace(-1, 1, resolution),
             z=y,
             name='contour',
-            colorscale="gnbu",
+            colorscale='brwnyl',
             hoverinfo='skip',
             showscale=False,
         )
@@ -177,12 +183,13 @@ def get_bmu(Zeta, clickData):
     return unit[0]
 
 
-def draw_scatter(fig, Z, labels, rank):
+def draw_scatter(fig, Z, labels, rank, viewer_name):
+    logger.debug(f"viewer_name: {viewer_name}")
     fig.add_trace(
         go.Scatter(
             x=Z[:, 0],
             y=Z[:, 1],
-            mode="markers",
+            mode=f"markers+text",
             name='lv',
             marker=dict(
                 size=rank[::-1],
@@ -190,10 +197,12 @@ def draw_scatter(fig, Z, labels, rank):
                 sizeref=2. * max(rank) / (40. ** 2),
                 sizemin=4,
             ),
-            text=labels,
+            text=(labels if viewer_name == 'viewer_2' else rank),
+            hovertext=labels,
             hoverlabel=dict(
                 bgcolor="rgba(255, 255, 255, 0.75)",
             ),
+            textposition='top center',
         )
     )
     return fig
@@ -204,8 +213,11 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
     logger.debug(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
+        labels = labels[0].tolist()
     elif viewer_id == 'viewer_2':
         Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
+        labels = labels[1].tolist()
+        logger.debug(f"LABELS: {labels[:5]}")
     else:
         logger.debug("Set viewer_id")
 
@@ -245,13 +257,34 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
         # u_resolution = 100
         # fig = draw_umatrix(fig, X, Z, sigma, u_resolution, labels)
 
-    fig = draw_scatter(fig, Z, labels, rank)
+    # Show words when it is highlighted
+    # if viewer_id == 'viewer_2' and not clicked_z == None:
+    #     y = Y[get_bmu(history['Zeta'], clicked_z), :].flatten()
+    #     threshold = float(y.max() * 3 + y.min()) * 0.25  # top 25%
+    #     logger.debug(f"th:{threshold}")
+    #     labels = np.array(labels)
+    #     displayed_zeta = history['Zeta'][y > threshold]
+    #     invisible_z_idx = [idx for idx, z in enumerate(Z) if not np.all([np.invert(np.isclose(z, zeta)) for zeta in displayed_zeta]) ]
+    #     logger.debug(f"invisible_z_idx: {invisible_z_idx}")
+    #     labels[invisible_z_idx] = ''
+    if viewer_id == 'viewer_2':
+        _, unique_Z_idx = np.unique(Z, axis=0, return_index=True)
+        logger.debug(unique_Z_idx)
+        duplicated_Z_idx = np.setdiff1d(np.arange(Z.shape[0]), unique_Z_idx)
+        # group = groupby(duplicated_Z_idx, key=lambda i: tuple(Z[i]))
+        # invisible_Z_idx = [next(v) for v in group.values()]
+        labels = np.array(labels)
+        labels[duplicated_Z_idx] = ''
+
+
+
+    fig = draw_scatter(fig, Z, labels, rank, viewer_id)
 
     fig.update_coloraxes(
         showscale=False
     )
     fig.update_layout(
-        plot_bgcolor="white",
+        plot_bgcolor=(PAPER_COLOR if viewer_id == 'viewer_1' else WORD_COLOR)
     )
     fig.update(
         layout_coloraxis_showscale=False,
@@ -265,4 +298,3 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
     )
 
     return fig
-

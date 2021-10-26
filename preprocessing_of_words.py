@@ -6,9 +6,14 @@ from nltk.stem import WordNetLemmatizer
 import pandas as pd
 import numpy as np
 
+
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('wordnet')
+
+
 def preprocessing_tag_and_stopwords(s):
-    nltk.download('punkt')
-    nltk.download('averaged_perceptron_tagger')
     lemmatizer = WordNetLemmatizer()
 
     need_tag = [['NN', 'NNS', 'NNP', 'NNPS'],['VB', 'VBD', 'VBG', 'VBN', 'VBP', 'VBZ'],

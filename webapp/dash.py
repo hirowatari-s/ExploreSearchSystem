@@ -126,6 +126,31 @@ result_component = dbc.Row(
     no_gutters=True
 )
 
+paper_list = html.Div(
+    id='paper-list',
+    children=[
+        html.H3(
+            id='paper-list-title',
+            children="",
+            className="display-4",
+            style=dict(
+                fontFamily="Oswald, sans-serif",
+                textAlign="center",
+            )
+        ),
+        html.Div(
+            id='paper-list-components',
+            children=[],
+            style=dict(
+                borderWidth="10px",
+                borderColor="white",
+                borderStyle="solid",
+                borderRadius="5px",
+            ),
+        ),
+    ]
+)
+
 
 main_layout = dbc.Container(children=[
     dbc.Row([
@@ -154,6 +179,8 @@ main_layout = dbc.Container(children=[
     #     ],
     #     style={"min-height":"5vh"}),
     result_component,
+    html.Hr(),
+    paper_list,
 ], id='main', style=dict(display="none"))
 
 
