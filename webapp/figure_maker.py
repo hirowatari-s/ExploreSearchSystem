@@ -167,7 +167,7 @@ def draw_ccp(fig, Y, Zeta, resolution, clickedData, viewer_id):
             y=np.linspace(-1, 1, resolution),
             z=y,
             name='contour',
-            colorscale="gnbu",
+            colorscale='brwnyl',
             hoverinfo='skip',
             showscale=False,
         )
