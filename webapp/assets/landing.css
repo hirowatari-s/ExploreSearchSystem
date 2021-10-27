@@ -9,7 +9,6 @@
 
 .landing .landing--title {
     position: absolute;
-    width: 70vw;
     right: 0;
     left: 0;
     top: 30vh;
@@ -17,7 +16,7 @@
 
     font-style: normal;
     font-weight: normal;
-    font-size: 7vmax;
+    font-size: 5vw;
     line-height: 103px;
     min-width: none;
     align-items: center;
@@ -53,8 +52,7 @@
 
     font-style: normal;
     font-weight: normal;
-    font-size: 1.5vmax;
-    line-height: 2.5vw;
+    font-size: 3vmin;
     align-items: center;
     align-self: center;
     text-align: center;
