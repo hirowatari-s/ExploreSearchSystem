@@ -41,11 +41,30 @@ def load_learning(n_clicks, viewer_name, p_clickData, w_clickData, keyword, p_pr
 
 
 @app.callback([
+        Output('search-form', 'value'),
+        Output('landing-search-form', 'value'),
+    ], [
+        Input('landing-explore-start', 'n_clicks'),
+        Input('word-addition-popover-button', 'children'),
+    ], [
+        State('search-form', 'value'),
+        State('landing-search-form', 'value'),
+    ], prevent_initial_call=True)
+def overwrite_search_form_value(n_clicks, popup_text, search_form, landing_form):
+    if landing_form != '':  # first search
+        search_form = landing_form or 'Machine Learning'
+        logger.debug(f"search_form: {search_form}")
+        return search_form, ''
+    else:  # additional search
+        word = popup_text.split(' ')[0]
+        return search_form + f' "{word}"', ''
+
+
+@app.callback([
         Output('main', 'style'),
         Output('landing', 'style'),
         Output('paper-map-col', 'style'),
         Output('word-map-col', 'style'),
-        Output('search-form', 'value'),
         Output('viewer-selector', 'value'),
     ], [
         Input('landing-explore-start', 'n_clicks'),
@@ -64,9 +83,7 @@ def make_page(n_clicks, keyword):
     paper_style['display'] = 'block'
     word_style['display'] = 'block'
 
-    keyword = keyword or 'Machine Learning'
-
-    return main_style, landing_style, paper_style, word_style, keyword, 'CCP'
+    return main_style, landing_style, paper_style, word_style, 'CCP'
 
 
 
