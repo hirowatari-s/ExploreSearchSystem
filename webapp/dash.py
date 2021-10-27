@@ -130,8 +130,14 @@ result_component = dbc.Row(
 word_addition_popover = dbc.Popover(
     id='word-addition-popover',
     target='paper-list-title',
-    children='Hello',
-    # trigger='focus',
+    children=dbc.Button(
+        id='word-addition-popover-button',
+        children="検索！",
+        className="btn btn-lg",
+    ),
+    trigger='focus',
+    className='bg-secondary',
+    style=dict(borderRight="#6c757d"),
 )
 
 
