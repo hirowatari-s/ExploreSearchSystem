@@ -89,6 +89,7 @@ def make_paper_component(title, abst, url, rank):
         Output('paper-list-title', 'children'),
         Output('paper-list-components', 'children'),
         Output('paper-list-components', 'style'),
+        Output('word-addition-popover', 'is_open'),
     ],
     [
         Input('paper-map', 'clickData'),
@@ -112,12 +113,14 @@ def make_paper_list(paperClickData, wordClickData, keyword, style):
     paper_labels = labels[0].values.tolist()
     word_labels = labels[1].tolist()
     if map_name == 'paper-map':
+        should_popover_open = False
         clicked_point = [[paperClickData['points'][0]['x'], paperClickData['points'][0]['y']]] if paperClickData else [[0, 0]]
         clicked_point = np.array(clicked_point)
         dists = dist.cdist(history['Z1'], clicked_point)
         paper_idxs = np.argsort(dists, axis=0)[:3].flatten()
         title = "クリックした付近の論文"
     else:
+        should_popover_open = True
         clicked_point = [[wordClickData['points'][0]['x'], wordClickData['points'][0]['y']]] if wordClickData else [[0, 0]]
         clicked_point = np.array(clicked_point)
         logger.debug(clicked_point)
@@ -143,4 +146,4 @@ def make_paper_list(paperClickData, wordClickData, keyword, style):
     ]
     style['borderColor'] = PAPER_COLOR if map_name == 'paper-map' else WORD_COLOR
 
-    return title, layout, style
+    return title, layout, style, should_popover_open
