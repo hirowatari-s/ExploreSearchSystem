@@ -1,21 +1,27 @@
 .landing {
-    text-align: center;
     font-family: Roboto;
+    align-items: center;
+    text-align: center;
+    right: 0;
+    left: 0;
+    margin: auto;
 }
 
 .landing .landing--title {
     position: absolute;
-    width: 826px;
-    height: 159px;
-    left: 313px;
-    top: 226px;
+    width: 70vw;
+    margin: auto;
+    right: 0;
+    left: 0;
+    top: 30vh;
 
     font-style: normal;
     font-weight: normal;
     font-size: 96px;
     line-height: 103px;
-    display: flex;
+    min-width: none;
     align-items: center;
+    align-self: center;
     text-align: center;
 
     color: #000000;
@@ -28,28 +34,31 @@
 
 .landing .landing--search-form {
     position: absolute;
-    width: 1060px;
-    left: 201px;
-    top: 567px;
+    width: 70vw;
+    top: 70vh;
+    right: 0;
+    left: 0;
 
     filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
     float: center;
+    text-align: center;
+    margin: auto;
 }
 
 .landing .landing--short-description {
     position: absolute;
-    width: 723px;
-    height: 173px;
-    left: 365px;
-    top: 385px;
+    top: 50vh;
+    right: 0;
+    left: 0;
 
     font-style: normal;
     font-weight: normal;
     font-size: 24px;
     line-height: 28px;
-    display: flex;
     align-items: center;
+    align-self: center;
     text-align: center;
+    margin: auto;
 
     color: #000000;
 
@@ -70,31 +79,51 @@
     font-weight: normal;
     font-size: 24px;
     line-height: 28px;
-    display: flex;
     align-items: center;
     text-align: center;
 
     color: #000000;
 }
 
-.landing .landing--box--yellow {
+.landing .landing--box {
     position: absolute;
-    top: 147px;
-    width: 666px;
-    height: 729px;
-    left: 731px;
+    background: #666666;
+    align-self: center;
+    top: 10vh;
+    width: 80vw;
+    height: 80vh;
+    right: 0;
+    left: 0;
+
+    margin: auto;
+    padding: 0;
+}
+
+.landing .landing--box .landing--box--yellow {
+    position: absolute;
+    width: 50%;
+    height: 100%;
+    left: 0;
+    right: 0;
+    margin: auto;
+    margin-right: 0;
+
+    align-items: center;
+    text-align: center;
 
     background: #E7DF25;
     border: 2px solid #FFFFFF;
     box-sizing: border-box;
 }
 
-.landing .landing--box--green {
+.landing .landing--box .landing--box--green {
     position: absolute;
-    top: 147px;
-    width: 666px;
-    height: 729px;
-    left: 63px;
+    width: 50%;
+    height: 100%;
+    left: 0;
+    right: 0;
+    margin: auto;
+    margin-left: 0;
 
     background: #90D050;
     border: 2px solid #FFFFFF;

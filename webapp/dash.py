@@ -188,8 +188,10 @@ landing_page_layout = dbc.Container(
     id='landing',
     className='landing',
     children=[
-        html.Div(className='landing--box--green'),
-        html.Div(className='landing--box--yellow'),
+        html.Div([
+            html.Div(className='landing--box--green'),
+            html.Div(className='landing--box--yellow'),
+        ], className='landing--box'),
         html.H4(
             '論文探索エンジン',
             className="landing--title"
