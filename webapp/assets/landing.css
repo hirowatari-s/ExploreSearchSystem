@@ -17,7 +17,7 @@
 
     font-style: normal;
     font-weight: normal;
-    font-size: 7vw;
+    font-size: 7vmax;
     line-height: 103px;
     min-width: none;
     align-items: center;
@@ -53,7 +53,7 @@
 
     font-style: normal;
     font-weight: normal;
-    font-size: 1.5vw;
+    font-size: 1.5vmax;
     line-height: 2.5vw;
     align-items: center;
     align-self: center;
@@ -70,14 +70,14 @@
 
 .landing .landing--howto-navi {
     position: absolute;
-    width: 254px;
-    height: 63px;
-    left: 593px;
-    top: 960px;
+    left: 0;
+    right: 0;
+    top: 92.5vh;
+    margin: auto;
 
     font-style: normal;
     font-weight: normal;
-    font-size: 24px;
+    font-size: 2vw;
     line-height: 28px;
     align-items: center;
     text-align: center;

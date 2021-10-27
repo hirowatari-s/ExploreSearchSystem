@@ -206,6 +206,10 @@ landing_page_layout = dbc.Container(
             className='landing--short-description',
         ),
         make_search_component(landing=True),
+        # html.Div(
+        #     '使い方はこちら',
+        #     className='landing--howto-navi',
+        # ),
 ])
 
 
