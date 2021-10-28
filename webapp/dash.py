@@ -221,6 +221,7 @@ app.layout = html.Div([
         value=0,
         type='number',
         style=(),
-        disabled=True,
-    )
+        # disabled=True,
+    ),
+    dcc.Store(id='memory'),
 ])

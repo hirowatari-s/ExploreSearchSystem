@@ -6,9 +6,11 @@ from webapp.figure_maker import (
     PAPER_COLOR, WORD_COLOR,
 )
 
-@app.callback(
-    Output('paper-map', 'figure'),
-    Output('word-map', 'figure'),
+@app.callback([
+        Output('paper-map', 'figure'),
+        Output('word-map', 'figure'),
+        Output('memory', 'data'),
+    ],
     [
         Input('explore-start', 'n_clicks'),
         Input('viewer-selector', 'value'),
@@ -37,7 +39,7 @@ def load_learning(n_clicks, viewer_name, p_clickData, w_clickData, keyword, p_pr
             viewer_1_name = 'CCP'
 
     keyword = keyword or "Machine Learning"
-    return make_figure(keyword, viewer_1_name, 'viewer_1', w_clickData), make_figure(keyword, viewer_2_name, 'viewer_2', p_clickData)
+    return make_figure(keyword, viewer_1_name, 'viewer_1', w_clickData), make_figure(keyword, viewer_2_name, 'viewer_2', p_clickData), {}
 
 
 @app.callback([
@@ -107,7 +109,7 @@ def make_paper_list(paperClickData, wordClickData, keyword, style):
     map_name = ctx.triggered[0]['prop_id'].split('.')[0]
     logger.info(f"map_name: {map_name}")
 
-    df, labels, _, history, _ = prepare_materials(keyword, 'TSOM')
+    df, labels, _, history, _, _ = prepare_materials(keyword, 'TSOM')
     Z2 = history['Z2']
     paper_labels = labels[0].values.tolist()
     word_labels = labels[1].tolist()
