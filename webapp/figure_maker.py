@@ -247,11 +247,11 @@ def make_figure(history, umatrix_hisotry, X, rank, labels, viewer_name='U_matrix
     logger.debug(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
-        labels = labels[0].tolist()
+        labels = labels[0] if isinstance(labels[0], list) else labels[0].tolist()
     elif viewer_id == 'viewer_2':
         Z, Y, sigma = history['Z2'], history['Y'], history['sigma']
         X = X.T
-        labels = labels[1].tolist()
+        labels = labels[1] if isinstance(labels[1], list) else labels[1].tolist()
         logger.debug(f"LABELS: {labels[:5]}")
     else:
         logger.debug("Set viewer_id")

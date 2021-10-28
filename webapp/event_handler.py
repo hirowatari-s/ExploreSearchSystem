@@ -7,31 +7,50 @@ from webapp.figure_maker import (
 )
 
 @app.callback([
-        Output('paper-map', 'figure'),
-        Output('word-map', 'figure'),
         Output('memory', 'data'),
     ],
     [
         Input('explore-start', 'n_clicks'),
+        Input('landing-explore-start', 'n_clicks'),
+    ],
+    [
+        State('search-form', 'value'),
+        State('memory', 'data'),
+])
+def load_learning(n_clicks, n_clicks2, keyword, data):
+    keyword = keyword or "Machine Learning"
+    _, labels, X, history, rank, umatrix_hisotry = prepare_materials(keyword, 'TSOM')
+    data = data or dict()
+    data.update(
+        history=history,
+        umatrix_hisotry=umatrix_hisotry,
+        X=X,
+        rank=rank,
+        labels=labels,
+    )
+    return data,
+
+
+@app.callback([
+        Output('paper-map', 'figure'),
+        Output('word-map', 'figure'),
+    ],
+    [
+        Input('memory', 'modified_timestamp'),
         Input('viewer-selector', 'value'),
         Input('paper-map', 'clickData'),
         Input('word-map', 'clickData'),
     ],
     [
-        State('search-form', 'value'),
-        State('paper-map', 'figure'),
-        State('word-map', 'figure'),
-])
-
-def load_learning(n_clicks, viewer_name, p_clickData, w_clickData, keyword, p_prev_fig, w_prev_fig):
+        State('memory', 'data'),
+], prevent_initial_call=True)
+def draw_maps(_, viewer_name, p_clickData, w_clickData, data):
     logger.debug(f"p_clickData: {p_clickData}")
     logger.debug(f"w_clickData: {w_clickData}")
-    ctx = dash.callback_context
-    print(ctx.triggered[0]['prop_id'])
-    print(type(ctx.triggered[0]['prop_id']))
-
-
     viewer_1_name, viewer_2_name = viewer_name, viewer_name
+    ctx = dash.callback_context
+    logger.debug(ctx.triggered[0]['prop_id'])
+    logger.debug(type(ctx.triggered[0]['prop_id']))
     if ctx.triggered[0]['prop_id'] == 'paper-map.clickData':
         if p_clickData and "points" in p_clickData and "pointIndex" in p_clickData["points"][0]:
             viewer_2_name = 'CCP'
@@ -39,11 +58,13 @@ def load_learning(n_clicks, viewer_name, p_clickData, w_clickData, keyword, p_pr
         if w_clickData and "points" in w_clickData and "pointIndex" in w_clickData["points"][0]:
             viewer_1_name = 'CCP'
 
-    keyword = keyword or "Machine Learning"
-    _, labels, X, history, rank, umatrix_hisotry = prepare_materials(keyword, 'TSOM')
+    history, umatrix_hisotry, X, rank, labels = data['history'], data['umatrix_hisotry'], data['X'], data['rank'], data['labels']
+    logger.debug('learned data loaded.')
+    history = {key: np.array(val) for key, val in history.items()}
+    X = np.array(X)
     paper_fig = make_figure(history, umatrix_hisotry, X, rank, labels, viewer_1_name, 'viewer_1', w_clickData)
     word_fig  = make_figure(history, umatrix_hisotry, X, rank, labels, viewer_2_name, 'viewer_2', p_clickData)
-    return paper_fig, word_fig, {}
+    return paper_fig, word_fig
 
 
 @app.callback([
