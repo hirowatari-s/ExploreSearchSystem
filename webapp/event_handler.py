@@ -8,6 +8,8 @@ from webapp.figure_maker import (
 
 @app.callback([
         Output('memory', 'data'),
+        Output('paper-map-loading', 'loading-state'),
+        Output('word-map-loading', 'loading-state'),
     ],
     [
         Input('explore-start', 'n_clicks'),
@@ -28,7 +30,7 @@ def load_learning(n_clicks, n_clicks2, keyword, data):
         rank=rank,
         labels=labels,
     )
-    return data,
+    return data, dict(is_loading=True), dict(is_loading=True)
 
 
 @app.callback([

@@ -107,6 +107,7 @@ make_map = lambda id, viewer_id: dbc.Col(
             figure=make_first_figure(viewer_id),
             config=dict(displayModeBar=False),
         ),
+        id=f'{id}-loading',
     ),
     style={"height": "100%", "display":"none"},
     md=12,
