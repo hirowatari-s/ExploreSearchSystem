@@ -30,6 +30,7 @@ def load_learning(n_clicks, viewer_name, p_clickData, w_clickData, keyword, p_pr
     print(ctx.triggered[0]['prop_id'])
     print(type(ctx.triggered[0]['prop_id']))
 
+
     viewer_1_name, viewer_2_name = viewer_name, viewer_name
     if ctx.triggered[0]['prop_id'] == 'paper-map.clickData':
         if p_clickData and "points" in p_clickData and "pointIndex" in p_clickData["points"][0]:
@@ -39,7 +40,10 @@ def load_learning(n_clicks, viewer_name, p_clickData, w_clickData, keyword, p_pr
             viewer_1_name = 'CCP'
 
     keyword = keyword or "Machine Learning"
-    return make_figure(keyword, viewer_1_name, 'viewer_1', w_clickData), make_figure(keyword, viewer_2_name, 'viewer_2', p_clickData), {}
+    _, labels, X, history, rank, umatrix_hisotry = prepare_materials(keyword, 'TSOM')
+    paper_fig = make_figure(history, umatrix_hisotry, X, rank, labels, viewer_1_name, 'viewer_1', w_clickData)
+    word_fig  = make_figure(history, umatrix_hisotry, X, rank, labels, viewer_2_name, 'viewer_2', p_clickData)
+    return paper_fig, word_fig, {}
 
 
 @app.callback([

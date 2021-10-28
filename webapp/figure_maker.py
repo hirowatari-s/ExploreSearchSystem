@@ -243,8 +243,7 @@ def draw_scatter(fig, Z, labels, rank, viewer_name):
     return fig
 
 
-def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None):
-    csv_df, labels, X, history, rank, umatrix_hisotry = prepare_materials(keyword, 'TSOM')
+def make_figure(history, umatrix_hisotry, X, rank, labels, viewer_name='U_matrix', viewer_id=None, clicked_z=None):
     logger.debug(viewer_id)
     if viewer_id == 'viewer_1':
         Z, Y, sigma = history['Z1'], history['Y'], history['sigma']
@@ -331,3 +330,8 @@ def make_figure(keyword, viewer_name="U_matrix", viewer_id=None, clicked_z=None)
     )
 
     return fig
+
+
+def make_first_figure(viewer_id):
+    _, labels, X, history, rank, umatrix_hisotry = prepare_materials('Machine Learning', 'TSOM')
+    return make_figure(history, umatrix_hisotry, X, rank, labels, 'U-matrix', viewer_id, None)
