@@ -95,7 +95,7 @@ make_search_component = lambda landing: dbc.Col([
     style={"padding":"10px"},
     md=12,
     xl=8,
-    className="card",
+    className=f"card {'landing--search-form' if landing else ''}",
 )
 
 
@@ -184,10 +184,33 @@ main_layout = dbc.Container(children=[
 ], id='main', style=dict(display="none"))
 
 
-landing_page_layout = dbc.Container(children=[
-    html.H1('Hello.'),
-    make_search_component(landing=True),
-], id='landing')
+landing_page_layout = dbc.Container(
+    id='landing',
+    className='landing',
+    children=[
+        html.Div([
+            html.Div(className='landing--box--green'),
+            html.Div(className='landing--box--yellow'),
+        ], className='landing--box'),
+        html.H4(
+            '論文探索エンジン',
+            className="landing--title"
+        ),
+        html.Div(
+            children=[
+                "arXiv のデータベースと AI 技術を活用した", html.Br(),
+                "論文探しをサポートする Web アプリケーションです．", html.Br(),
+                "2つのマップと3種類の可視化方法で", html.Br(),
+                "新しい論文探索体験を提供します．", html.Br(),
+            ],
+            className='landing--short-description',
+        ),
+        make_search_component(landing=True),
+        # html.Div(
+        #     '使い方はこちら',
+        #     className='landing--howto-navi',
+        # ),
+])
 
 
 app.layout = html.Div([
