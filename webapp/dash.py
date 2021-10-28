@@ -95,7 +95,7 @@ make_search_component = lambda landing: dbc.Col([
     style={"padding":"10px"},
     md=12,
     xl=8,
-    className="card",
+    className=f"card {'landing--search-form' if landing else ''}",
 )
 
 
@@ -126,6 +126,31 @@ result_component = dbc.Row(
     no_gutters=True
 )
 
+paper_list = html.Div(
+    id='paper-list',
+    children=[
+        html.H3(
+            id='paper-list-title',
+            children="",
+            className="display-4",
+            style=dict(
+                fontFamily="Oswald, sans-serif",
+                textAlign="center",
+            )
+        ),
+        html.Div(
+            id='paper-list-components',
+            children=[],
+            style=dict(
+                borderWidth="10px",
+                borderColor="white",
+                borderStyle="solid",
+                borderRadius="5px",
+            ),
+        ),
+    ]
+)
+
 
 main_layout = dbc.Container(children=[
     dbc.Row([
@@ -154,13 +179,38 @@ main_layout = dbc.Container(children=[
     #     ],
     #     style={"min-height":"5vh"}),
     result_component,
+    html.Hr(),
+    paper_list,
 ], id='main', style=dict(display="none"))
 
 
-landing_page_layout = dbc.Container(children=[
-    html.H1('Hello.'),
-    make_search_component(landing=True),
-], id='landing')
+landing_page_layout = dbc.Container(
+    id='landing',
+    className='landing',
+    children=[
+        html.Div([
+            html.Div(className='landing--box--green'),
+            html.Div(className='landing--box--yellow'),
+        ], className='landing--box'),
+        html.H4(
+            '論文探索エンジン',
+            className="landing--title"
+        ),
+        html.Div(
+            children=[
+                "arXiv のデータベースと AI 技術を活用した", html.Br(),
+                "論文探しをサポートする Web アプリケーションです．", html.Br(),
+                "2つのマップと3種類の可視化方法で", html.Br(),
+                "新しい論文探索体験を提供します．", html.Br(),
+            ],
+            className='landing--short-description',
+        ),
+        make_search_component(landing=True),
+        # html.Div(
+        #     '使い方はこちら',
+        #     className='landing--howto-navi',
+        # ),
+])
 
 
 app.layout = html.Div([
